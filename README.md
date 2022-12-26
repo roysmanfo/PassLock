@@ -3,7 +3,7 @@
 Save all your password in a secure way on your local device.
 
 
-## Wow does it work
+## How does it work
 Password after being encrypted, get stored in a JSON file with the following format:
 
 ```json
