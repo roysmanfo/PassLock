@@ -9,13 +9,9 @@ class Secure():
         self.key = key
         
         if key == "":
-            self.key = self.generate_key()
+            self.key = Fernet.generate_key()
         
         self.fernet = Fernet(key)
-
-
-    def generate_key(self) -> bytes:
-        return Fernet.generate_key()
 
     def encrypt(self, data: str):
         return self.fernet.encrypt(bytes(data))
