@@ -1,6 +1,6 @@
-#Secret key
-key.key
-
+# Venv
+Scripts/
+vault.json
 # ignore_me files (if you need to test something)
 ignore_me_*.*
 
