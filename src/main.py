@@ -60,5 +60,5 @@ def main():
         USER) if USER.password_manager == b"" else login(USER)
     print("Logged sucessfully")
 
-
-main()
+if __name__ == '__main__':
+    main()
