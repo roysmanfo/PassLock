@@ -18,11 +18,23 @@ as we won't be able to restore or change it if forgotten, for security reasons.
 
 A Password Master (PM) must be at least 8 characters long (max 32) and contain at least 1 uppercase letter
     """)
-    passw: str = getpass.getpass("Your Password Manager:  ")
+    approved = False
 
-    while not USER.check_password(passw) or len(passw) > 32:
-        print("Your password doesn't satisfy some requirements, type another one")
+    while not approved:
         passw: str = getpass.getpass("Your Password Manager:  ")
+
+        if not USER.check_password(passw) or len(passw) > 32:
+            print("Your password doesn't satisfy some requirements, type another one")
+            passw: str = getpass.getpass("Your Password Manager:  ")
+        
+        else:
+
+            passw2 = getpass.getpass("Your Password Manager (again):  ")
+
+            if passw == passw2:
+                approved = True
+            else:
+                print("Passwords do not match, insert again the password")
 
     # Create padding
     for _ in range(len(passw), 32):
