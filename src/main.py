@@ -2,6 +2,7 @@ from user import User
 from cryptography.fernet import Fernet
 import getpass
 import base64
+import sys
 
 
 def generate_key(USER: User) -> bytes:
@@ -38,10 +39,14 @@ def login(user: User) -> bytes:
     ### Login and password validation sequence
     Returns the key needed to unlock the vault
     """
-    pm = getpass.getpass("Enter password manager (invisible):  ")
-    while not user.validate_key(pm):
-        print("Not the correct password")
+    try:
         pm = getpass.getpass("Enter password manager (invisible):  ")
+        while not user.validate_key(pm):
+            print("Not the correct password")
+            pm = getpass.getpass("Enter password manager (invisible):  ")
+
+    except KeyboardInterrupt:
+        sys.exit(0)
 
     # Create padding
     for _ in range(len(pm), 32):
@@ -59,6 +64,17 @@ def main():
     USER.key = generate_key(
         USER) if USER.password_manager == b"" else login(USER)
     print("Logged sucessfully")
+    while True:
+        try:
+            command = input('PassLock> ')
+            command = command.strip().lower().split(' ')
+            while command.count('') > 0:
+                command.remove('')
+            
+            print(command)
+
+        except KeyboardInterrupt:
+            sys.exit(0)
 
 if __name__ == '__main__':
     main()
