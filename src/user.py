@@ -52,5 +52,7 @@ class User(object):
             __file__), "data"), exist_ok=True)
         with open(os.path.join(os.path.dirname(__file__), "data", "vault.json"), "w") as f:
             context = {
-                "PM-hash": hashlib.sha512(password.encode()).hexdigest()}
+                "PM-hash": hashlib.sha512(password.encode()).hexdigest(),
+                "Apps": {}
+                }
             json.dump(context, f, indent=4, sort_keys=True)
