@@ -1,5 +1,7 @@
 from user import User
 from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.hazmat.primitives import hashes
 import getpass
 import base64
 import sys
@@ -53,13 +55,21 @@ A Password Master (PM) must be at least 8 characters long (max 32) and contain a
                 print(
                     f"{col.RED}Passwords do not match, insert again the password{col.RESET}")
 
-    # Create padding
-    for _ in range(len(passw), 32):
-        passw += "="
-
+    # Create key
     USER.create_vault(passw)
-    fernet = Fernet(base64.urlsafe_b64encode(passw.encode()))
-    key = fernet.generate_key()
+
+    passw = passw.encode()
+    salt = b'5df'
+    iterations = 100_000
+    key_length = 32
+
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA3_512(),
+        length=key_length,
+        salt=salt,
+        iterations=iterations
+    )
+    key = base64.urlsafe_b64encode(kdf.derive(passw))
     return key
 
 
@@ -77,12 +87,21 @@ def login(user: User) -> bytes:
     except KeyboardInterrupt:
         sys.exit(0)
 
-    # Create padding
-    for _ in range(len(pm), 32):
-        pm += "="
+    # Derive key
 
-    fernet = Fernet(base64.urlsafe_b64encode(pm.encode()))
-    return fernet.generate_key()
+    pm = pm.encode()
+    salt = b'5df'
+    iterations = 100_000
+    key_length = 32
+
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA3_512(),
+        length=key_length,
+        salt=salt,
+        iterations=iterations
+    )
+    key = base64.urlsafe_b64encode(kdf.derive(pm))
+    return key
 
 
 def main():
@@ -103,7 +122,7 @@ def main():
             command[0].lower()
             run_command(command, USER.key)
 
-            print(command)
+            # print(command)
         except KeyboardInterrupt:
             break
 
@@ -119,7 +138,7 @@ def run_command(args: list, key: bytes):
     Google: 3 fields
 
     ## `get VALUE` case sensitive
-    
+
     GitHub
     ================================================================
     Username: Github1234
@@ -140,8 +159,7 @@ def run_command(args: list, key: bytes):
                 return
 
             for app in apps.keys():
-                print(
-                    f'{app}: {col.CYAN}{len(apps[app].keys())}{col.RESET} fields')
+                print(f'{app}: {col.CYAN}{len(apps[app].keys())}{col.RESET} fields')
 
     elif args[0] == 'get':
         if len(args) < 2:
@@ -153,14 +171,16 @@ def run_command(args: list, key: bytes):
             with open(os.path.join('data', 'vault.json'), 'r') as f:
                 apps: dict = json.load(f)['Apps']
                 if args[1] not in apps.keys():
-                    print(f'\n{col.RED}App not found{col.RESET}')
+                    print(f'{col.RED}App not found{col.RESET}')
                 else:
-                    print(f'{col.CYAN}{args[1].upper()}{col.RESET}')
+                    # print('================================================================')
+                    print(f'\n{col.CYAN}{args[1].upper()}{col.RESET}')
                     print('================================================================')
-                    for _, val in enumerate(apps[args[1]].keys()):
-                        print(f'{val}: {fernet.decrypt(apps[args[1]][val])}')
+                    for _, name in enumerate(apps[args[1]].keys()):
+                        val = fernet.decrypt(apps[args[1]][name]).decode('utf-8')
+                        print(f'{name}: {col.PURPLE}{val}{col.RESET}')
                     print('================================================================')
-                
+
 
 if __name__ == '__main__':
     main()

@@ -24,8 +24,6 @@ class User(object):
             return b""
 
     def validate_key(self, key: str) -> bool:
-        for _ in range(len(key), 32):
-            key += "="
         key = hashlib.sha512(key.encode()).hexdigest()
         return True if key == self.password_manager.decode() else False
 
@@ -55,4 +53,4 @@ class User(object):
                 "PM-hash": hashlib.sha512(password.encode()).hexdigest(),
                 "Apps": {}
                 }
-            json.dump(context, f, indent=4, sort_keys=True)
+            json.dump(context, f, indent=4)
