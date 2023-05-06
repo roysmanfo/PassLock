@@ -30,7 +30,7 @@ def generate_key(USER: User) -> bytes:
     print("""
 In order to secure your password at best, you have to create a Password Master
 
-A Password Master (PM) is a password you will have to remember and make sure to remember it
+A Password Master (PM) is a password you will have to remember and make sure to not forget
 as we won't be able to restore or change it if forgotten, for security reasons.
 
 A Password Master (PM) must be at least 8 characters long (max 32) and contain at least 1 uppercase letter
@@ -139,7 +139,7 @@ def run_command(args: list, key: bytes):
 
     ## `get VALUE` case insensitive
 
-    GitHub
+    GITHUB
     ================================================================
     Username: Github1234
     Password: mypassword123
