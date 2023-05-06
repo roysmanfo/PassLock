@@ -5,5 +5,5 @@ A list of the commands that are used to interact with the app.
 ----------------|------------
 help            | Show all commands available
 get VALUE       | Get all credentials for the specified app (case insensitive)
-set VALUE NEW   | Update the credentials for the specified app (NEW in case sensitive)
+set KEY NEW     | Update the credentials for the specified app (i.e set github.password password )
 list            | List all app names
