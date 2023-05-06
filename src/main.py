@@ -189,9 +189,7 @@ def run_command(args: list, key: bytes):
         if len(args) < 3:
             print(f'{col.RED}Not enough arguments specified{col.RESET}')
             return
-        elif len(args) > 3:
-            print(f'{col.RED}Too many arguments specified{col.RESET}')
-            return
+
         elif len(args[1].split('.')) < 2:
             print(f'{col.RED}No field to change specified{col.RESET}')
             return
@@ -209,7 +207,7 @@ def run_command(args: list, key: bytes):
             if appfield not in apps[appname].keys():
                 print(f'{col.CYAN}Creating new field {appfield}{col.RESET}')
             
-            dict.update(apps[appname], {appfield: fernet.encrypt(args[2].encode('utf-8')).decode('utf-8')})
+            dict.update(apps[appname], {appfield: fernet.encrypt(" ".join(args[2:]).encode('utf-8')).decode('utf-8')})
             
             update_vault(apps)
             print(f'{col.GREEN}{appname} updated{col.RESET}')
