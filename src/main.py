@@ -144,6 +144,8 @@ def run_command(args: list, key: bytes):
     Username: Github1234
     Password: mypassword123
     ================================================================
+
+    ## `set KEY NEW` case insensitive
     """
 
     fernet = Fernet(key)
@@ -164,24 +166,61 @@ def run_command(args: list, key: bytes):
     elif args[0] == 'get':
         if len(args) < 2:
             print(f'{col.RED}No app name specified{col.RESET}')
+            return
         elif len(args) > 2:
             print(f'{col.RED}Too many arguments specified{col.RESET}')
+            return
+        
+        with open(os.path.join('data', 'vault.json'), 'r') as f:
+            apps: dict = json.load(f)['Apps']
+            args[1]: str = args[1].capitalize()
+            if args[1] not in apps.keys():
+                print(f'{col.RED}App not found{col.RESET}')
+            else:
+                # print('================================================================')
+                print(f'\n{col.CYAN}{args[1].upper()}{col.RESET}')
+                print('================================================================')
+                for _, name in enumerate(apps[args[1]].keys()):
+                    val = fernet.decrypt(apps[args[1]][name]).decode('utf-8')
+                    print(f'{name.upper()}: {col.PURPLE}{val}{col.RESET}')
+                print('================================================================')
+    
+    elif args[0] == 'set':
+        if len(args) < 3:
+            print(f'{col.RED}Not enough arguments specified{col.RESET}')
+            return
+        elif len(args) > 3:
+            print(f'{col.RED}Too many arguments specified{col.RESET}')
+            return
+        elif len(args[1].split('.')) < 2:
+            print(f'{col.RED}No field to change specified{col.RESET}')
+            return
+        
+        appname, appfield = args[1].split('.')
+        with open(os.path.join('data', 'vault.json'), 'r') as f:
+            file = json.load(f)
+            apps: dict = file['Apps']
+            pm_hash: str = file['PM-hash']
+            appname:str = appname.capitalize()
+            appfield:str = appfield.capitalize()
 
-        else:
-            with open(os.path.join('data', 'vault.json'), 'r') as f:
-                apps: dict = json.load(f)['Apps']
-                args[1]: str = args[1].capitalize()
-                if args[1] not in apps.keys():
-                    print(f'{col.RED}App not found{col.RESET}')
-                else:
-                    # print('================================================================')
-                    print(f'\n{col.CYAN}{args[1].upper()}{col.RESET}')
-                    print('================================================================')
-                    for _, name in enumerate(apps[args[1]].keys()):
-                        val = fernet.decrypt(apps[args[1]][name]).decode('utf-8')
-                        print(f'{name}: {col.PURPLE}{val}{col.RESET}')
-                    print('================================================================')
+            if appname not in apps.keys():
+                print(f'{col.RED}App not found{col.RESET}')
+                return
 
+            if appfield not in apps[appname].keys():
+                print(f'{col.CYAN}Creating new field {appfield}{col.RESET}')
+            
+            dict.update(apps[appname], {appfield: fernet.encrypt(args[2].encode('utf-8')).decode('utf-8')})
+            updated_vault = {
+                "PM-hash": pm_hash,
+                "Apps": apps
+            }
+            with open(os.path.join('data', 'vault.json'), 'w') as l:
+                json.dump(updated_vault, l, indent=4)
+
+            print(f'{col.GREEN}{appname} updated successfully{col.RESET}')
+            
 
 if __name__ == '__main__':
     main()
