@@ -137,7 +137,7 @@ def run_command(args: list, key: bytes):
     GitHub: 2 fields
     Google: 3 fields
 
-    ## `get VALUE` case sensitive
+    ## `get VALUE` case insensitive
 
     GitHub
     ================================================================
@@ -170,6 +170,7 @@ def run_command(args: list, key: bytes):
         else:
             with open(os.path.join('data', 'vault.json'), 'r') as f:
                 apps: dict = json.load(f)['Apps']
+                args[1]: str = args[1].capitalize()
                 if args[1] not in apps.keys():
                     print(f'{col.RED}App not found{col.RESET}')
                 else:
