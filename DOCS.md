@@ -9,3 +9,4 @@ del KEY         | Delete the credentials of the specified field (i.e del github.
 get KEY         | Get all credentials for the specified app (*case insensitive*)
 set KEY NEW     | Add/Update the credentials for the specified app (i.e set github.password password )
 list            | List all app names
+clear           | Clear the screen

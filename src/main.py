@@ -255,6 +255,9 @@ def run_command(args: list, key: bytes):
 
             update_vault(apps)
             print(f'{col.GREEN}{" ".join(new_apps)} added{col.RESET}')
+    
+    elif args[0] == 'clear':
+        os.system("clear || cls")
 
 
 
