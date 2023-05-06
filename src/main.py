@@ -244,6 +244,20 @@ def run_command(args: list, key: bytes):
             update_vault(apps)
             print(f'{col.GREEN}{appname} updated{col.RESET}')
 
+    elif args[0] == 'add':
+        if len(args) < 2:
+            print(f'{col.RED}Not enough arguments specified{col.RESET}')
+            return
+        with open(os.path.join('data', 'vault.json'), 'r') as f:
+            apps: dict = json.load(f)['Apps']
+            new_apps = args[1:]
+
+            for app in new_apps:
+                dict.update(apps, {app.capitalize(): {}})
+
+            update_vault(apps)
+            print(f'{col.GREEN}{" ".join(new_apps)} added{col.RESET}')
+
 
 
 def update_vault(apps: dict):
