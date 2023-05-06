@@ -198,9 +198,7 @@ def run_command(args: list, key: bytes):
         
         appname, appfield = args[1].split('.')
         with open(os.path.join('data', 'vault.json'), 'r') as f:
-            file = json.load(f)
-            apps: dict = file['Apps']
-            pm_hash: str = file['PM-hash']
+            apps: dict = json.load(f)['Apps']
             appname:str = appname.capitalize()
             appfield:str = appfield.capitalize()
 
@@ -212,15 +210,54 @@ def run_command(args: list, key: bytes):
                 print(f'{col.CYAN}Creating new field {appfield}{col.RESET}')
             
             dict.update(apps[appname], {appfield: fernet.encrypt(args[2].encode('utf-8')).decode('utf-8')})
-            updated_vault = {
-                "PM-hash": pm_hash,
-                "Apps": apps
-            }
-            with open(os.path.join('data', 'vault.json'), 'w') as l:
-                json.dump(updated_vault, l, indent=4)
-
-            print(f'{col.GREEN}{appname} updated successfully{col.RESET}')
             
+            update_vault(apps)
+            print(f'{col.GREEN}{appname} updated{col.RESET}')
+
+    elif args[0] == 'del':
+        if len(args) < 2:
+            print(f'{col.RED}Not enough arguments specified{col.RESET}')
+            return
+        elif len(args) > 2:
+            print(f'{col.RED}Too many arguments specified{col.RESET}')
+            return
+        elif len(args[1].split('.')) < 2:
+            print(f'{col.RED}No field to change specified{col.RESET}')
+            return
+        
+        appname, appfield = args[1].split('.')
+
+        with open(os.path.join('data', 'vault.json'), 'r') as f:
+            apps: dict = json.load(f)['Apps']
+            appname:str = appname.capitalize()
+            appfield:str = appfield.capitalize()
+            
+            if appname not in apps.keys():
+                print(f'{col.RED}App not found{col.RESET}')
+                return
+
+            if appfield not in apps[appname].keys():
+                print(f'{col.RED}Field not found in {appname}{col.RESET}')
+                return
+
+            apps[appname].pop(appfield)
+            update_vault(apps)
+            print(f'{col.GREEN}{appname} updated{col.RESET}')
+
+
+
+def update_vault(apps: dict):
+    with open(os.path.join('data', 'vault.json'), 'r') as f:
+        file = json.load(f)
+        pm_hash: str = file['PM-hash']
+        updated_vault = {
+            "PM-hash": pm_hash,
+            "Apps": apps
+        }
+        with open(os.path.join('data', 'vault.json'), 'w') as l:
+            json.dump(updated_vault, l, indent=4)
+    
+
 
 if __name__ == '__main__':
     main()
