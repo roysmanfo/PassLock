@@ -153,9 +153,12 @@ def main():
             args[0].lower()
             run_command(parser.parse_args(args), USER.key)
 
-            # print(command)
         except KeyboardInterrupt:
             break
+
+        except argparse.ArgumentError as e:
+            error = 'I' + e.__str__().removeprefix('argument command: i')
+            print(f'{col.RED}{error}{col.RESET}')
 
     sys.exit(0)
 
