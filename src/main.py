@@ -40,7 +40,7 @@ list_parser.add_argument('-s', '--sort', action='store_true', help='Sorts the na
 
 set_parser = subparser.add_parser('set', help='Add/Update the credentials for the specified app (i.e set github.password password )', exit_on_error=False)
 set_parser.add_argument('field', help='field to modify (syntax: app_name.field_name)')
-set_parser.add_argument('new_val', help='New value for the specified field')
+set_parser.add_argument('new_val', nargs='*', help='New value for the specified field')
 
 get_parser = subparser.add_parser('get', help='Get all credentials for the specified app (*case insensitive*)', exit_on_error=False)
 get_parser.add_argument('key', help='The app_nane whose the credentials will be shown')
@@ -291,12 +291,12 @@ def run_command(args, key: bytes):
             print(f'{col.GREEN}{appname} updated{col.RESET}')
 
     elif args.command == 'add':
-        if len(args.args) < 1:
+        if len(args.key) < 1:
             print(f'{col.RED}Not enough arguments specified{col.RESET}')
             return
         with open(os.path.join('data', 'vault.json'), 'r') as f:
             apps: dict = json.load(f)['Apps']
-            new_apps = args.args
+            new_apps = args.key
 
             for app in new_apps:
                 dict.update(apps, {app.capitalize(): {}})
