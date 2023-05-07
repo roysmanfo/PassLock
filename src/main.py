@@ -321,7 +321,6 @@ commands:
     get                 Get all credentials for the specified app (*case insensitive*)
     del                 Delete the credentials of the specified field (i.e del github.phone ) or whole app from the password vault
     add                 Add the new app/apps to the vault (i.e add github bitcoin work)
-    help                Show this help message
 ''')
 
 
