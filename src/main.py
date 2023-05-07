@@ -21,18 +21,19 @@ class Color:
 
 col = Color
 
-class CustomHelpAction(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
-        parser.print_help()
-        parser.exit()
 
-parser = argparse.ArgumentParser(prog='PassLock', description='Store your passwords localy in a secure way', usage='[-h] { list, set, get, del, add } ...', exit_on_error=False)
-parser.add_argument('-h', '--help', action=CustomHelpAction)
+parser = argparse.ArgumentParser(
+    prog='PassLock',
+    description='Store your passwords localy in a secure way',
+    usage='{ exit, clear, help, list, set, get, del, add } ...',
+    exit_on_error=False,
+    add_help=False
+)
 subparser = parser.add_subparsers(dest='command')
 
 general_parser = subparser.add_parser('exit', help='Close the application', exit_on_error=False)
 general_parser = subparser.add_parser('clear', help='Clear the screen', exit_on_error=False)
-general_parser = subparser.add_parser('help', help='Display this help message', exit_on_error=False)
+general_parser = subparser.add_parser('help' , help='Display this help message', exit_on_error=False)
 
 list_parser = subparser.add_parser('list', help='List all app names', exit_on_error=False)
 list_parser.add_argument('-s', '--sort', action='store_true', help='Sorts the names based on the number of fields')
@@ -305,6 +306,23 @@ def run_command(args, key: bytes):
     
     elif args.command == 'clear':
         os.system("clear || cls")
+
+    elif args.command in ['-h', '--help','help']:
+        print('''usage: { exit, clear, help, list, set, get, del, add } ...
+
+Store your passwords localy in a secure way
+
+commands:
+    exit                Close the application
+    clear               Clear the screen
+    help                Display this help message
+    list                List all app names
+    set                 Add/Update the credentials for the specified app (i.e set github.password password )
+    get                 Get all credentials for the specified app (*case insensitive*)
+    del                 Delete the credentials of the specified field (i.e del github.phone ) or whole app from the password vault
+    add                 Add the new app/apps to the vault (i.e add github bitcoin work)
+    help                Show this help message
+''')
 
 
 
