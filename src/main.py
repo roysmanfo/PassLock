@@ -7,7 +7,7 @@ import base64
 import sys
 import json
 import os
-
+import argparse
 
 class Color:
     RED = "\033[0;31m"
@@ -20,6 +20,35 @@ class Color:
 
 
 col = Color
+
+class CustomHelpAction(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        parser.print_help()
+        parser.exit()
+
+parser = argparse.ArgumentParser(prog='PassLock', description='Store your passwords localy in a secure way', usage='[-h] { list, set, get, del, add } ...', exit_on_error=False)
+parser.add_argument('-h', '--help', action=CustomHelpAction)
+subparser = parser.add_subparsers(dest='command')
+
+general_parser = subparser.add_parser('exit', help='Close the application', exit_on_error=False)
+general_parser = subparser.add_parser('clear', help='Clear the screen', exit_on_error=False)
+general_parser = subparser.add_parser('help', help='Display this help message', exit_on_error=False)
+
+list_parser = subparser.add_parser('list', help='List all app names', exit_on_error=False)
+list_parser.add_argument('-s', '--sort', action='store_true', help='Sorts the names based on the number of fields')
+
+set_parser = subparser.add_parser('set', help='Add/Update the credentials for the specified app (i.e set github.password password )', exit_on_error=False)
+set_parser.add_argument('field', help='field to modify (syntax: app_name.field_name)')
+set_parser.add_argument('new_val', help='New value for the specified field')
+
+get_parser = subparser.add_parser('get', help='Get all credentials for the specified app (*case insensitive*)', exit_on_error=False)
+get_parser.add_argument('key', help='The app_nane whose the credentials will be shown')
+
+del_parser = subparser.add_parser('del', help='Delete the credentials of the specified field (i.e del github.phone ) or whole app from the password vault', exit_on_error=False)
+del_parser.add_argument('key', help='The name of the app/field to delete')
+
+add_parser = subparser.add_parser('add', help='Add the new app/apps to the vault (i.e add github bitcoin work)', exit_on_error=False)
+add_parser.add_argument('key', nargs='*', metavar='app', help='app_name to add to the password vault')
 
 
 def generate_key(USER: User) -> bytes:
@@ -112,15 +141,16 @@ def main():
     USER.key = generate_key(
         USER) if USER.password_manager == b"" else login(USER)
     print(f"{col.GREEN}Logged sucessfully{col.RESET}")
+
     while True:
         try:
             print(f"{col.BLUE}PassLock> {col.RESET}", end='')
-            command = input()
-            command = command.strip().split(' ')
-            while command.count('') > 0:
-                command.remove('')
-            command[0].lower()
-            run_command(command, USER.key)
+            args = input()
+            args = args.strip().split(' ')
+            while args.count('') > 0:
+                args.remove('')
+            args[0].lower()
+            run_command(parser.parse_args(args), USER.key)
 
             # print(command)
         except KeyboardInterrupt:
@@ -129,7 +159,7 @@ def main():
     sys.exit(0)
 
 
-def run_command(args: list, key: bytes):
+def run_command(args, key: bytes):
     """
     # Examples of outputs from these commmands
     ## `list`
@@ -150,51 +180,58 @@ def run_command(args: list, key: bytes):
 
     fernet = Fernet(key)
 
-    if args[0] == 'exit':
+    if args.command == 'exit':
         sys.exit(0)
 
-    elif args[0] == 'list':
+    elif args.command == 'list':
         with open(os.path.join('data', 'vault.json'), 'r') as f:
             apps: dict = json.load(f)['Apps']
+            
             if len(apps) == 0:
                 print(f'{col.YELLOW}No apps registered yet{col.RESET}')
                 return
+            # Organize apps in a set (app_name, n_fields)
+            apps = [(i, len(apps[i].items())) for i in apps]
+            
+            # Wheather or not we want to sort the apps based on the number of fields
+            if args.sort:
+                apps = sorted(apps, key=lambda x: x[1], reverse=True)
+            
+            for app in apps:
+                print(f'{app[0]}: {col.CYAN}{app[1]}{col.RESET} fields')
 
-            for app in apps.keys():
-                print(f'{app}: {col.CYAN}{len(apps[app].keys())}{col.RESET} fields')
-
-    elif args[0] == 'get':
-        if len(args) < 2:
+    elif args.command == 'get':
+        if not args.key:
             print(f'{col.RED}No app name specified{col.RESET}')
             return
-        elif len(args) > 2:
-            print(f'{col.RED}Too many arguments specified{col.RESET}')
-            return
+        # elif len(args) > 2:
+        #     print(f'{col.RED}Too many arguments specified{col.RESET}')
+        #     return
         
         with open(os.path.join('data', 'vault.json'), 'r') as f:
             apps: dict = json.load(f)['Apps']
-            args[1]: str = args[1].capitalize()
-            if args[1] not in apps.keys():
+            args.key: str = args.key.capitalize()
+            if args.key not in apps.keys():
                 print(f'{col.RED}App not found{col.RESET}')
             else:
                 # print('================================================================')
-                print(f'\n{col.CYAN}{args[1].upper()}{col.RESET}')
+                print(f'\n{col.CYAN}{args.key.upper()}{col.RESET}')
                 print('================================================================')
-                for _, name in enumerate(apps[args[1]].keys()):
-                    val = fernet.decrypt(apps[args[1]][name]).decode('utf-8')
+                for _, name in enumerate(apps[args.key].keys()):
+                    val = fernet.decrypt(apps[args.key][name]).decode('utf-8')
                     print(f'{name.upper()}: {col.PURPLE}{val}{col.RESET}')
                 print('================================================================')
     
-    elif args[0] == 'set':
-        if len(args) < 3:
+    elif args.command == 'set':
+        if not args.field or not args.new_val:
             print(f'{col.RED}Not enough arguments specified{col.RESET}')
             return
 
-        elif len(args[1].split('.')) < 2:
+        elif len(args.field.split('.')) < 2:
             print(f'{col.RED}No field to change specified{col.RESET}')
             return
         
-        appname, appfield = args[1].split('.')
+        appname, appfield = args.field.split('.')
         with open(os.path.join('data', 'vault.json'), 'r') as f:
             apps: dict = json.load(f)['Apps']
             appname:str = appname.capitalize()
@@ -207,23 +244,33 @@ def run_command(args: list, key: bytes):
             if appfield not in apps[appname].keys():
                 print(f'{col.CYAN}Creating new field {appfield}{col.RESET}')
             
-            dict.update(apps[appname], {appfield: fernet.encrypt(" ".join(args[2:]).encode('utf-8')).decode('utf-8')})
+            dict.update(apps[appname], {appfield: fernet.encrypt(" ".join(args.new_val).encode('utf-8')).decode('utf-8')})
             
             update_vault(apps)
             print(f'{col.GREEN}{appname} updated{col.RESET}')
 
-    elif args[0] == 'del':
-        if len(args) < 2:
+    elif args.command == 'del':
+        if not args.key:
             print(f'{col.RED}Not enough arguments specified{col.RESET}')
             return
-        elif len(args) > 2:
-            print(f'{col.RED}Too many arguments specified{col.RESET}')
-            return
-        elif len(args[1].split('.')) < 2:
-            print(f'{col.RED}No field to change specified{col.RESET}')
+        # elif len(args) > 2:
+        #     print(f'{col.RED}Too many arguments specified{col.RESET}')
+        #     return
+        
+        elif len(args.key.split('.')) < 2:
+            with open(os.path.join('data', 'vault.json'), 'r') as f:
+                apps: dict = json.load(f)['Apps']
+
+                if args.key.capitalize() not in apps.keys():
+                    print(f'{col.RED}App not found{col.RESET}')
+                    return
+                
+                apps.pop(args.key.capitalize())
+                update_vault(apps)
+                print(f'{col.GREEN}{args.key.capitalize()} removed{col.RESET}')
             return
         
-        appname, appfield = args[1].split('.')
+        appname, appfield = args.key.split('.')
 
         with open(os.path.join('data', 'vault.json'), 'r') as f:
             apps: dict = json.load(f)['Apps']
@@ -242,13 +289,13 @@ def run_command(args: list, key: bytes):
             update_vault(apps)
             print(f'{col.GREEN}{appname} updated{col.RESET}')
 
-    elif args[0] == 'add':
-        if len(args) < 2:
+    elif args.command == 'add':
+        if len(args.args) < 1:
             print(f'{col.RED}Not enough arguments specified{col.RESET}')
             return
         with open(os.path.join('data', 'vault.json'), 'r') as f:
             apps: dict = json.load(f)['Apps']
-            new_apps = args[1:]
+            new_apps = args.args
 
             for app in new_apps:
                 dict.update(apps, {app.capitalize(): {}})
@@ -256,7 +303,7 @@ def run_command(args: list, key: bytes):
             update_vault(apps)
             print(f'{col.GREEN}{" ".join(new_apps)} added{col.RESET}')
     
-    elif args[0] == 'clear':
+    elif args.command == 'clear':
         os.system("clear || cls")
 
 
@@ -267,7 +314,7 @@ def update_vault(apps: dict):
         pm_hash: str = file['PM-hash']
         updated_vault = {
             "PM-hash": pm_hash,
-            "Apps": apps
+            "Apps": dict(sorted(apps.items()))
         }
         with open(os.path.join('data', 'vault.json'), 'w') as l:
             json.dump(updated_vault, l, indent=4)
