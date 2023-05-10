@@ -248,7 +248,7 @@ def run_command(args, key: bytes):
             if appfield not in apps[appname].keys():
                 print(f'{col.CYAN}Creating new field {appfield}{col.RESET}')
             
-            dict.update(apps[appname], {appfield: fernet.encrypt(" ".join(args.new_val).encode('utf-8')).decode('utf-8')})
+            dict.update(apps[appname], {fernet.encrypt(appfield).decode(): fernet.encrypt(" ".join(args.new_val).encode('utf-8')).decode('utf-8')})
             
             update_vault(apps)
             print(f'{col.GREEN}{appname} updated{col.RESET}')
@@ -302,7 +302,7 @@ def run_command(args, key: bytes):
             new_apps = args.key
 
             for app in new_apps:
-                dict.update(apps, {app.capitalize(): {}})
+                dict.update(apps, {fernet.encrypt(app.capitalize()).decode(): {}})
 
             update_vault(apps)
             print(f'{col.GREEN}{" ".join(new_apps)} added{col.RESET}')
