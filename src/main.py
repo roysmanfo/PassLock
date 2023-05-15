@@ -232,6 +232,7 @@ def run_command(args, key: bytes):
                 print('================================================================')
                 for _, name in enumerate(apps[mapped_keys[args.key]].keys()):
                     val = fernet.decrypt(apps[mapped_keys[args.key]][name]).decode('utf-8')
+                    name = fernet.decrypt(name).decode('utf-8')
                     print(f'{name.upper()}: {col.PURPLE}{val}{col.RESET}')
                 print('================================================================')
     
