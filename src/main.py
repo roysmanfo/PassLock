@@ -238,17 +238,25 @@ def run_command(args, key: bytes):
         appname, appfield = args.field.split('.')
         with open(os.path.join('data', 'vault.json'), 'r') as f:
             apps: dict = json.load(f)['Apps']
+
             appname:str = appname.capitalize()
             appfield:str = appfield.capitalize()
 
-            if appname not in apps.keys():
+            stored_keys = [fernet.decrypt(i).decode() for i in apps.keys()]
+            if appname not in stored_keys:
                 print(f'{col.RED}App not found{col.RESET}')
                 return
 
-            if appfield not in apps[appname].keys():
+            mapped_keys = {}
+            for enc_key in apps.keys():
+                dict.update(mapped_keys, {fernet.decrypt(enc_key).decode(): enc_key})
+            print(mapped_keys)
+
+            stored_keys = [fernet.decrypt(i).decode() for i in apps[mapped_keys[appname]].keys()]
+            if appfield not in stored_keys:
                 print(f'{col.CYAN}Creating new field {appfield}{col.RESET}')
             
-            dict.update(apps[appname], {fernet.encrypt(appfield).decode(): fernet.encrypt(" ".join(args.new_val).encode('utf-8')).decode('utf-8')})
+            dict.update(apps[mapped_keys[appname]], {fernet.encrypt(appfield.encode()).decode(): fernet.encrypt(" ".join(args.new_val).encode('utf-8')).decode('utf-8')})
             
             update_vault(apps)
             print(f'{col.GREEN}{appname} updated{col.RESET}')
@@ -302,7 +310,7 @@ def run_command(args, key: bytes):
             new_apps = args.key
 
             for app in new_apps:
-                dict.update(apps, {fernet.encrypt(app.capitalize()).decode(): {}})
+                dict.update(apps, {fernet.encrypt(app.capitalize().encode()).decode(): {}})
 
             update_vault(apps)
             print(f'{col.GREEN}{" ".join(new_apps)} added{col.RESET}')
