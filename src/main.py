@@ -277,35 +277,48 @@ def run_command(args, key: bytes):
         #     print(f'{col.RED}Too many arguments specified{col.RESET}')
         #     return
         
+        # Remove the whole app from the vault
         elif len(args.key.split('.')) < 2:
             with open(os.path.join('data', 'vault.json'), 'r') as f:
                 apps: dict = json.load(f)['Apps']
 
-                if args.key.capitalize() not in apps.keys():
+                keys = [fernet.decrypt(i).decode() for i in apps.keys()]
+                for enc_key in apps.keys():
+                    dict.update(mapped_keys, {fernet.decrypt(enc_key).decode(): enc_key})
+
+                if args.key.capitalize() not in keys:
                     print(f'{col.RED}App not found{col.RESET}')
                     return
                 
-                apps.pop(args.key.capitalize())
+                mapped_keys = {}
+
+                apps.pop(mapped_keys[args.key.capitalize()])
                 update_vault(apps)
                 print(f'{col.GREEN}{args.key.capitalize()} removed{col.RESET}')
             return
         
+        # Remove just a field
         appname, appfield = args.key.split('.')
 
         with open(os.path.join('data', 'vault.json'), 'r') as f:
             apps: dict = json.load(f)['Apps']
             appname:str = appname.capitalize()
-            appfield:str = appfield.capitalize()
+            appfield: str = appfield.capitalize()   
             
-            if appname not in apps.keys():
+            keys = [fernet.decrypt(i).decode() for i in apps.keys()]
+            mapped_keys = {}
+            for enc_key in apps.keys():
+                dict.update(mapped_keys, {fernet.decrypt(enc_key).decode(): enc_key})
+            
+            if appname not in keys:
                 print(f'{col.RED}App not found{col.RESET}')
                 return
 
-            if appfield not in apps[appname].keys():
-                print(f'{col.RED}Field not found in {appname}{col.RESET}')
+            if appfield not in [fernet.decrypt(i).decode() for i in apps[mapped_keys[appname]].keys()]:
+                print(f'{col.RED}Field {appfield} not found in {appname}{col.RESET}')
                 return
 
-            apps[appname].pop(appfield)
+            apps[mapped_keys[appname]].pop([i for i in apps[mapped_keys[appname]].keys() if fernet.decrypt(i).decode() == appfield][0])
             update_vault(apps)
             print(f'{col.GREEN}{appname} updated{col.RESET}')
 
