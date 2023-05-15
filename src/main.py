@@ -195,7 +195,7 @@ def run_command(args, key: bytes):
                 print(f'{col.YELLOW}No apps registered yet{col.RESET}')
                 return
             # Organize apps in a set (app_name, n_fields)
-            apps = [(i, len(apps[i].items())) for i in apps]
+            apps = [(fernet.decrypt(i).decode(), len(apps[i].items())) for i in apps]
             
             # Wheather or not we want to sort the apps based on the number of fields
             if args.sort:
@@ -250,7 +250,6 @@ def run_command(args, key: bytes):
             mapped_keys = {}
             for enc_key in apps.keys():
                 dict.update(mapped_keys, {fernet.decrypt(enc_key).decode(): enc_key})
-            print(mapped_keys)
 
             stored_keys = [fernet.decrypt(i).decode() for i in apps[mapped_keys[appname]].keys()]
             if appfield not in stored_keys:
