@@ -215,14 +215,23 @@ def run_command(args, key: bytes):
         with open(os.path.join('data', 'vault.json'), 'r') as f:
             apps: dict = json.load(f)['Apps']
             args.key: str = args.key.capitalize()
-            if args.key not in apps.keys():
+
+            keys = [fernet.decrypt(i).decode() for i in apps.keys()]
+
+            if args.key not in keys:
                 print(f'{col.RED}App not found{col.RESET}')
             else:
+
+                mapped_keys = {}
+                for enc_key in apps.keys():
+                    dict.update(mapped_keys, {fernet.decrypt(enc_key).decode(): enc_key})
+
+
                 # print('================================================================')
                 print(f'\n{col.CYAN}{args.key.upper()}{col.RESET}')
                 print('================================================================')
-                for _, name in enumerate(apps[args.key].keys()):
-                    val = fernet.decrypt(apps[args.key][name]).decode('utf-8')
+                for _, name in enumerate(apps[mapped_keys[args.key]].keys()):
+                    val = fernet.decrypt(apps[mapped_keys[args.key]][name]).decode('utf-8')
                     print(f'{name.upper()}: {col.PURPLE}{val}{col.RESET}')
                 print('================================================================')
     
