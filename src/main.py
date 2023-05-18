@@ -25,7 +25,7 @@ col = Color
 parser = argparse.ArgumentParser(
     prog='PassLock',
     description='Store your passwords localy in a secure way',
-    usage='{ exit, clear, help, list, set, get, del, add } ...',
+    usage='{ exit, clear, help, list, set, get, del, rm, add, rename, rnm } ...',
     exit_on_error=False,
     add_help=False
 )
@@ -45,11 +45,22 @@ set_parser.add_argument('new_val', nargs='*', help='New value for the specified 
 get_parser = subparser.add_parser('get', help='Get all credentials for the specified app (*case insensitive*)', exit_on_error=False)
 get_parser.add_argument('key', help='The app_nane whose the credentials will be shown')
 
-del_parser = subparser.add_parser('del', help='Delete the credentials of the specified field (i.e del github.phone ) or whole app from the password vault', exit_on_error=False)
+del_parser = subparser.add_parser('del', help='Delete the credentials of the specified app/field (i.e `del github.phone` or `del github`) from the password vault', exit_on_error=False)
 del_parser.add_argument('key', help='The name of the app/field to delete')
 
+rm_parser = subparser.add_parser('rm', help='Delete the credentials of the specified app/field (i.e `rm github.phone` or `rm github`) from the password vault', exit_on_error=False)
+rm_parser.add_argument('key', help='The name of the app/field to delete')
+
 add_parser = subparser.add_parser('add', help='Add the new app/apps to the vault (i.e add github bitcoin work)', exit_on_error=False)
-add_parser.add_argument('key', nargs='*', metavar='app', help='app_name to add to the password vault')
+add_parser.add_argument('key', nargs='*', metavar='app', help='app_name/app_field to add to the password vault')
+
+rename_parser = subparser.add_parser('rename', help='Rename a key or a field (i.e `rename work.code passkey` or `rename work job`)', exit_on_error=False)
+rename_parser.add_argument('key', nargs='*', metavar='app', help='app_name/app_field to rename in the password vault')
+rename_parser.add_argument('new_val', nargs='*', help='New value for the specified field')
+
+rnm_parser = subparser.add_parser('rnm', help='Rename a key or a field (i.e `rename work.code passkey` or `rename work job`)', exit_on_error=False)
+rnm_parser.add_argument('key', nargs='*', metavar='app', help='app_name/app_field to rename in the password vault')
+rnm_parser.add_argument('new_val', nargs='*', help='New value for the specified field')
 
 
 def generate_key(USER: User) -> bytes:
@@ -351,9 +362,12 @@ commands:
     help                Display this help message
     list                List all app names
     set                 Add/Update the credentials for the specified app (i.e set github.password password )
-    get                 Get all credentials for the specified app (*case insensitive*)
-    del                 Delete the credentials of the specified field (i.e del github.phone ) or whole app from the password vault
+    get                 Get all credentials for the specified app
+    del                 Delete the credentials of the specified app/field (i.e `del github.phone` or `del github`) from the password vault
+    rm                  Delete the credentials of the specified app/field (i.e `rm github.phone` or `rm github`) from the password vault
     add                 Add the new app/apps to the vault (i.e add github bitcoin work)
+    rename              Rename a key or a field (i.e `rename work.code passkey` or `rename work job`)
+    rnm                 Rename a key or a field (i.e `rnm work.code passkey` or `rnm work job`)
 ''')
 
 
