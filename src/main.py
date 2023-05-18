@@ -281,7 +281,7 @@ def run_command(args, key: bytes):
             update_vault(apps)
             print(f'{col.GREEN}{appname} updated{col.RESET}')
 
-    elif args.command == 'del':
+    elif args.command in ['del', 'rm']:
         if not args.key:
             print(f'{col.RED}Not enough arguments specified{col.RESET}')
             return
