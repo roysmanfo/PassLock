@@ -10,6 +10,7 @@ add KEY                     | Add the new app/apps to the vault (i.e `add github
 get KEY                     | Get all credentials for the specified app (*case insensitive*)
 set FIELD[.VALUE] VALUE     | Add/Update the credentials for the specified app (i.e `set github.password password` )
 list [-s]                   | List all app names. `-s` sorts the names based on the number of fields
+ls [-s]                     | List all app names. `-s` sorts the names based on the number of fields
 rename KEY[.FIELD] VALUE    | Rename a key or a field (i.e `rename work.code passkey` or `rename work job`)
 rnm KEY[.FIELD] VALUE       | Rename a key or a field (i.e `rnm work.code passkey` or `rnm work job`)
 clear                       | Clear the screen

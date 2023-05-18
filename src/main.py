@@ -38,6 +38,9 @@ general_parser = subparser.add_parser('help' , help='Display this help message',
 list_parser = subparser.add_parser('list', help='List all app names', exit_on_error=False)
 list_parser.add_argument('-s', '--sort', action='store_true', help='Sorts the names based on the number of fields')
 
+ls_parser = subparser.add_parser('ls', help='List all app names', exit_on_error=False)
+ls_parser.add_argument('-s', '--sort', action='store_true', help='Sorts the names based on the number of fields')
+
 set_parser = subparser.add_parser('set', help='Add/Update the credentials for the specified app (i.e set github.password password )', exit_on_error=False)
 set_parser.add_argument('field', help='field to modify (syntax: app_name.field_name)')
 set_parser.add_argument('new_val', nargs='*', help='New value for the specified field')
@@ -55,11 +58,11 @@ add_parser = subparser.add_parser('add', help='Add the new app/apps to the vault
 add_parser.add_argument('key', nargs='*', metavar='app', help='app_name/app_field to add to the password vault')
 
 rename_parser = subparser.add_parser('rename', help='Rename a key or a field (i.e `rename work.code passkey` or `rename work job`)', exit_on_error=False)
-rename_parser.add_argument('key', nargs='*', metavar='app', help='app_name/app_field to rename in the password vault')
+rename_parser.add_argument('key', nargs=1, metavar='app', help='app_name/app_field to rename in the password vault')
 rename_parser.add_argument('new_val', nargs='*', help='New value for the specified field')
 
 rnm_parser = subparser.add_parser('rnm', help='Rename a key or a field (i.e `rename work.code passkey` or `rename work job`)', exit_on_error=False)
-rnm_parser.add_argument('key', nargs='*', metavar='app', help='app_name/app_field to rename in the password vault')
+rnm_parser.add_argument('key', nargs=1, metavar='app', help='app_name/app_field to rename in the password vault')
 rnm_parser.add_argument('new_val', nargs='*', help='New value for the specified field')
 
 
@@ -198,7 +201,7 @@ def run_command(args, key: bytes):
     if args.command == 'exit':
         sys.exit(0)
 
-    elif args.command == 'list':
+    elif args.command in ['list', 'ls']:
         with open(os.path.join('data', 'vault.json'), 'r') as f:
             apps: dict = json.load(f)['Apps']
             
@@ -295,6 +298,7 @@ def run_command(args, key: bytes):
                 apps: dict = json.load(f)['Apps']
 
                 keys = [fernet.decrypt(i).decode() for i in apps.keys()]
+                mapped_keys = {}
                 for enc_key in apps.keys():
                     dict.update(mapped_keys, {fernet.decrypt(enc_key).decode(): enc_key})
 
@@ -302,7 +306,6 @@ def run_command(args, key: bytes):
                     print(f'{col.RED}App not found{col.RESET}')
                     return
                 
-                mapped_keys = {}
 
                 apps.pop(mapped_keys[args.key.capitalize()])
                 update_vault(apps)
@@ -361,6 +364,7 @@ commands:
     clear               Clear the screen
     help                Display this help message
     list                List all app names
+    ls                  List all app names
     set                 Add/Update the credentials for the specified app (i.e set github.password password )
     get                 Get all credentials for the specified app
     del                 Delete the credentials of the specified app/field (i.e `del github.phone` or `del github`) from the password vault
@@ -370,6 +374,15 @@ commands:
     rnm                 Rename a key or a field (i.e `rnm work.code passkey` or `rnm work job`)
 ''')
 
+    elif args.command in ['rename', 'rnm']:
+        # Rename a key or field
+        target = args.key
+        new_val = args.new_val
+
+        with open(os.path.join('data', 'vault.json'), 'r') as f:
+            mapped_keys = {}
+            for enc_key in apps.keys():
+                dict.update(mapped_keys, {fernet.decrypt(enc_key).decode(): enc_key})
 
 
 def update_vault(apps: dict):
