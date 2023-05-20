@@ -25,7 +25,7 @@ col = Color
 parser = argparse.ArgumentParser(
     prog='PassLock',
     description='Store your passwords localy in a secure way',
-    usage='{ exit, clear, help, list, set, get, del, rm, add, rename, rnm } ...',
+    usage='{ exit, clear, help, list, ls, set, get, del, rm, add, rename, rnm } ...',
     exit_on_error=False,
     add_help=False
 )
@@ -343,19 +343,33 @@ def run_command(args, key: bytes):
             return
         with open(os.path.join('data', 'vault.json'), 'r') as f:
             apps: dict = json.load(f)['Apps']
-            new_apps = args.key
+            new_apps = [i.capitalize() for i in args.key]
+            keys = [fernet.decrypt(i).decode() for i in apps.keys()]
+
+            for i in new_apps:
+                if new_apps.count(i) > 1:
+                    print(f"{col.RED}App {i} is repeated, only one will be created{col.RESET}")
+                    while new_apps.count(i) > 1:
+                        new_apps.remove(i)
+            for app in new_apps:
+                if app in keys:
+                    print(f"{col.RED}There is already an app with name {app.capitalize()}{col.RESET}")
+                    new_apps.remove(app)
 
             for app in new_apps:
+                if app in keys:
+                    new_apps.remove(app)
+                    continue
                 dict.update(apps, {fernet.encrypt(app.capitalize().encode()).decode(): {}})
 
             update_vault(apps)
-            print(f'{col.GREEN}{" ".join(new_apps)} added{col.RESET}')
+            print(f'{col.GREEN}{" ".join(new_apps)} added{col.RESET}') if len(new_apps) > 0 else 0
     
     elif args.command == 'clear':
         os.system("clear || cls")
 
     elif args.command in ['-h', '--help','help']:
-        print('''usage: { exit, clear, help, list, set, get, del, add } ...
+        print('''usage: { exit, clear, help, list, ls, set, get, del, rm, add, rename, rnm } ...
 
 Store your passwords localy in a secure way
 
@@ -376,13 +390,21 @@ commands:
 
     elif args.command in ['rename', 'rnm']:
         # Rename a key or field
-        target = args.key
-        new_val = args.new_val
+        original_key: str = args.key.capitalize()
+        new_key: str = args.new_val.capitalize()
 
         with open(os.path.join('data', 'vault.json'), 'r') as f:
+            keys = [fernet.decrypt(i).decode() for i in apps.keys()]
             mapped_keys = {}
             for enc_key in apps.keys():
                 dict.update(mapped_keys, {fernet.decrypt(enc_key).decode(): enc_key})
+            
+            if len(original_key.split('.')) == 1:
+                if original_key not in keys:
+                    print(f'{col.RED}App not found{col.RESET}')
+                    return
+                    
+                
 
 
 def update_vault(apps: dict):
