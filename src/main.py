@@ -405,6 +405,10 @@ commands:
                     print(f'{col.RED}App not found{col.RESET}')
                     return
                 
+            if new_key in keys:
+                print(f"{col.RED}There is already an app with name {new_key.capitalize()}{col.RESET}")
+                return
+                
             sub_dict = apps[mapped_keys[original_key]]
             apps[fernet.encrypt(new_key.encode()).decode()] = sub_dict
             del apps[mapped_keys[original_key]]
