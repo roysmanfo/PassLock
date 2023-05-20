@@ -58,12 +58,12 @@ add_parser = subparser.add_parser('add', help='Add the new app/apps to the vault
 add_parser.add_argument('key', nargs='*', metavar='app', help='app_name/app_field to add to the password vault')
 
 rename_parser = subparser.add_parser('rename', help='Rename a key or a field (i.e `rename work.code passkey` or `rename work job`)', exit_on_error=False)
-rename_parser.add_argument('key', nargs=1, metavar='app', help='app_name/app_field to rename in the password vault')
-rename_parser.add_argument('new_val', nargs='*', help='New value for the specified field')
+rename_parser.add_argument('key', metavar='app', help='app_name/app_field to rename in the password vault')
+rename_parser.add_argument('new_val', help='New value for the specified field')
 
 rnm_parser = subparser.add_parser('rnm', help='Rename a key or a field (i.e `rename work.code passkey` or `rename work job`)', exit_on_error=False)
-rnm_parser.add_argument('key', nargs=1, metavar='app', help='app_name/app_field to rename in the password vault')
-rnm_parser.add_argument('new_val', nargs='*', help='New value for the specified field')
+rnm_parser.add_argument('key', metavar='app', help='app_name/app_field to rename in the password vault')
+rnm_parser.add_argument('new_val', help='New value for the specified field')
 
 
 def generate_key(USER: User) -> bytes:
@@ -394,6 +394,7 @@ commands:
         new_key: str = args.new_val.capitalize()
 
         with open(os.path.join('data', 'vault.json'), 'r') as f:
+            apps: dict = json.load(f)['Apps']
             keys = [fernet.decrypt(i).decode() for i in apps.keys()]
             mapped_keys = {}
             for enc_key in apps.keys():
@@ -403,6 +404,14 @@ commands:
                 if original_key not in keys:
                     print(f'{col.RED}App not found{col.RESET}')
                     return
+                
+            sub_dict = apps[mapped_keys[original_key]]
+            apps[fernet.encrypt(new_key.encode()).decode()] = sub_dict
+            del apps[mapped_keys[original_key]]
+            
+            update_vault(apps)
+            print(f"{col.GREEN}Renamed '{original_key}' to '{new_key}'{col.RESET}")
+
                     
                 
 
