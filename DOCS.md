@@ -14,4 +14,5 @@ A list of the commands that are used to interact with the app.
 **rename KEY[.FIELD] VALUE**    | Rename a key or a field (i.e `rename work.code passkey` or `rename work job`)
 **rnm KEY[.FIELD] VALUE**       | Rename a key or a field (i.e `rnm work.code passkey` or `rnm work job`)
 **clear**                       | Clear the screen
-**chpass**                      | Change the password manager.
+**chpass**                      | Change the password master.
+**sethint VALUE**               | Set a hint for when you forget the password master
