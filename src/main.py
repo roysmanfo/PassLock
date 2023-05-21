@@ -13,7 +13,7 @@ def main():
     """
     ### Point of start of the program
     """
-    USER = User()
+    USER = User(VAULT_PATH)
     USER.key = login.generate_key(USER) if USER.password_manager == b"" else login.login(USER)
     print(f"{col.GREEN}Logged sucessfully{col.RESET}")
     parser = get_parser()
@@ -25,7 +25,7 @@ def main():
             while args.count('') > 0:
                 args.remove('')
             args[0].lower()
-            command.run_command(args=parser.parse_args(args), key=USER.key, vault_path=VAULT_PATH, user=USER)
+            command.run_command(args=parser.parse_args(args), key=USER.key, user=USER)
 
         except KeyboardInterrupt:
             break
