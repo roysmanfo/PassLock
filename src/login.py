@@ -1,21 +1,18 @@
 import sys
 import getpass
-import base64
 import getpass
-from hashlib import pbkdf2_hmac
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.hazmat.primitives import hashes
 
 from user import User
 from colors import col
 import utils
 
-def generate_key(USER: User) -> bytes:
+def generate_key(USER: User, from_command_line: bool = False) -> bytes or tuple:
     """
     ### Allows user to create a new password manager instance
     Returns the key needed to unlock the vault 
     """
-    print("""
+    if not from_command_line:
+        print("""
 In order to secure your password at best, you have to create a Password Master
 
 A Password Master (PM) is a password you will have to remember and make sure to not forget
@@ -23,6 +20,7 @@ as we won't be able to restore or change it if forgotten, for security reasons.
 
 A Password Master (PM) must be at least 8 characters long (max 32) and contain at least 1 uppercase letter
     """)
+        
     approved = False
 
     while not approved:
@@ -44,9 +42,12 @@ A Password Master (PM) must be at least 8 characters long (max 32) and contain a
                     f"{col.RED}Passwords do not match, insert again the password{col.RESET}")
 
     # Create key
-    USER.create_vault(passw)
+    if not from_command_line:
+        USER.create_vault(passw)    
+        return (utils.compute_key(passw=passw, login=False, iterations=100_000, key_length=32))
+    
+    return (utils.compute_key(passw=passw, login=False, iterations=100_000, key_length=32), passw)
 
-    return utils.compute_key(passw, 100_000, 32)
 
 
 def login(user: User) -> bytes:
@@ -64,6 +65,6 @@ def login(user: User) -> bytes:
         sys.exit(0)
 
     # Derive key
-    return utils.compute_key(pm, 100_000, 32)
+    return utils.compute_key(pm, True, 100_000, 32)
 
 
