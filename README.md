@@ -26,7 +26,7 @@ Password after being encrypted, get stored in a JSON file with the following for
   }
 }
 ```
-As you can see, there are multiple ways to save your data
+As you can see, there are multiple ways to save your data  
 NOTE: *Everything is encrypted, both keys and values, except for the keys `"Apps"` and `PM-hash` that are not*
 
 To learn more about the commands available goto the [documentation](./DOCS.md)
