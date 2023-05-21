@@ -5,14 +5,14 @@ from cryptography.hazmat.primitives import hashes
 
 from user import User
 
-def update_vault(apps: dict, user: User, pm_hash: str = None):
+def update_vault(user: User, pm_hash: str = None, hint: str = None, apps: dict = None):
     with open(user.vault_path, 'r') as f:
         file = json.load(f)
         pm_hash: str = file['PM-hash'] if pm_hash is None else pm_hash
         updated_vault = {
-            "PM-hash": pm_hash,
-            "Hint": "",
-            "Apps": dict(sorted(apps.items()))
+            "PM-hash": pm_hash if pm_hash is None else file['PM-hash'],
+            "Hint": hint if hint is not None else file['Hint'],
+            "Apps": dict(sorted(apps.items())) if apps is not None else file["Apps"] 
         }
 
     with open(user.vault_path, 'w') as l:

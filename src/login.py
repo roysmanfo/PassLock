@@ -1,5 +1,5 @@
 import sys
-import os
+import json
 import getpass
 import getpass
 
@@ -59,11 +59,14 @@ def login(user: User) -> bytes:
     try:
         i = 0
         pm = getpass.getpass("Enter password manager (invisible):  ")
+        with open(user.vault_path) as f:
+            hint = json.load(f)["Hint"]
         while not user.validate_key(pm):
             print(f"{col.RED}Not the correct password{col.RESET}")
             i+=1
             if i >= 3:
                 print(f"{col.RED}You failed login {i} times. Type 'rst' or 'reset' to erase the vault and create another one{col.RESET}")
+                print(f"{col.CYAN}Hint:{col.RESET}", hint) if hint != "" else 0
             pm = getpass.getpass("Enter password manager (invisible):  ")
             
             if not user.validate_key(pm) and pm in ['rst', 'reset']:

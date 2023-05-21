@@ -45,4 +45,8 @@ def get_parser() -> argparse.ArgumentParser:
     rnm_parser.add_argument('key', metavar='app', help='app_name/app_field to rename in the password vault')
     rnm_parser.add_argument('new_val', help='New value for the specified field')
 
+    sethint_parser = subparser.add_parser('sethint', help='Set a hint for when you forget the password master (i.e sethint your dog\'s name)', exit_on_error=False)
+    sethint_parser.add_argument('hint', nargs='*',  help='hint (can be a sentence) for when you forget the password master')
+
+
     return parser

@@ -113,7 +113,7 @@ def run_command(args: ArgumentParser, key: bytes, user: User):
             
             dict.update(apps[mapped_keys[appname]], {fernet.encrypt(appfield.encode()).decode(): fernet.encrypt(" ".join(args.new_val).encode('utf-8')).decode('utf-8')})
             
-            update_vault(apps, user.vault_path)
+            update_vault(user, apps=apps)
             print(f'{col.GREEN}{appname} updated{col.RESET}')
 
     elif args.command in ['del', 'rm']:
@@ -138,7 +138,7 @@ def run_command(args: ArgumentParser, key: bytes, user: User):
                     
 
                     apps.pop(mapped_keys[appkey.capitalize()])
-                    update_vault(apps, user.vault_path)
+                    update_vault(user, apps=apps)
                     print(f'{col.GREEN}{appkey.capitalize()} removed{col.RESET}')
                 continue
             
@@ -165,7 +165,7 @@ def run_command(args: ArgumentParser, key: bytes, user: User):
 
                 apps[mapped_keys[appname]].pop([i for i in apps[mapped_keys[appname]].keys() if fernet.decrypt(i).decode() == appfield][0])
 
-            update_vault(apps, user.vault_path)
+            update_vault(user, apps=apps )
             print(f'{col.GREEN}{appname} updated{col.RESET}')
 
     elif args.command == 'add':
@@ -193,7 +193,7 @@ def run_command(args: ArgumentParser, key: bytes, user: User):
                     continue
                 dict.update(apps, {fernet.encrypt(app.capitalize().encode()).decode(): {}})
 
-            update_vault(apps, user.vault_path)
+            update_vault(user, apps=apps )
             print(f'{col.GREEN}{" ".join(new_apps)} added{col.RESET}') if len(new_apps) > 0 else 0
     
     elif args.command == 'clear':
@@ -208,6 +208,7 @@ commands:
     exit                Close the application
     clear               Clear the screen
     chpass              Change the password manager.
+    sethint     	    Set a hint for when you forget the password master (i.e sethint your dog\'s name)
     help                Display this help message
     list                List all app names
     ls                  List all app names
@@ -245,7 +246,7 @@ commands:
             apps[fernet.encrypt(new_key.encode()).decode()] = sub_dict
             del apps[mapped_keys[original_key]]
             
-            update_vault(apps, user.vault_path)
+            update_vault(user, apps=apps)
             print(f"{col.GREEN}Renamed '{original_key}' to '{new_key}'{col.RESET}")
 
     elif args.command == 'chpass':
@@ -268,5 +269,17 @@ commands:
                     dict.update(fields, {fernet.encrypt(field[0].encode()).decode(): fernet.encrypt(field[1].encode()).decode()})
                 dict.update(apps, {fernet.encrypt(app[0].encode()).decode(): fields})
 
-            update_vault(apps, user.vault_path, pm_hash)
-                        
+            update_vault(user, pm_hash, apps=apps)
+    
+    elif args.command == 'sethint':
+        hint = " ".join(args.hint)
+        
+        if len(args.hint) < 1:
+            if input("Do you want to delete the hint [y/n]: ").lower() == "y":
+                update_vault(user, hint=hint)
+                print(f'{col.GREEN}Hint deleted{col.RESET}')
+            else:
+                print(f'{col.GREEN}Hint unchanged{col.RESET}')
+        else:            
+            update_vault(user, hint=hint)
+            print(f"{col.GREEN}Hint modified{col.RESET}")
