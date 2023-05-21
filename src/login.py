@@ -44,7 +44,7 @@ A Password Master (PM) must be at least 8 characters long (max 32) and contain a
 
     # Create key
     if not from_command_line:
-        USER.create_vault(passw, "", USER.vault_path)    
+        USER.create_vault(passw, "")    
         return (utils.compute_key(passw=passw, iterations=100_000, key_length=32))
     
     return (utils.compute_key(passw=passw, iterations=100_000, key_length=32), passw)

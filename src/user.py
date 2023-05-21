@@ -5,9 +5,9 @@ import hashlib
 
 class User(object):
     def __init__(self, vault_path: str):
-        self.password_manager = self.get_PM()
-        self.key = ""
         self.vault_path = vault_path
+        self.key = ""
+        self.password_manager = self.get_PM()
 
     def get_PM(self) -> bytes:
         try:
