@@ -44,9 +44,9 @@ A Password Master (PM) must be at least 8 characters long (max 32) and contain a
     # Create key
     if not from_command_line:
         USER.create_vault(passw)    
-        return (utils.compute_key(passw=passw, login=False, iterations=100_000, key_length=32))
+        return (utils.compute_key(passw=passw, iterations=100_000, key_length=32))
     
-    return (utils.compute_key(passw=passw, login=False, iterations=100_000, key_length=32), passw)
+    return (utils.compute_key(passw=passw, iterations=100_000, key_length=32), passw)
 
 
 
@@ -65,6 +65,6 @@ def login(user: User) -> bytes:
         sys.exit(0)
 
     # Derive key
-    return utils.compute_key(pm, True, 100_000, 32)
+    return utils.compute_key(pm, 100_000, 32)
 
 

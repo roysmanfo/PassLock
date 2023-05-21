@@ -25,7 +25,7 @@ def main():
             while args.count('') > 0:
                 args.remove('')
             args[0].lower()
-            command.run_command(parser.parse_args(args), USER.key, VAULT_PATH)
+            command.run_command(args=parser.parse_args(args), key=USER.key, vault_path=VAULT_PATH, user=USER)
 
         except KeyboardInterrupt:
             break

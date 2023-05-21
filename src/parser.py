@@ -4,7 +4,7 @@ def get_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog='PassLock',
         description='Store your passwords localy in a secure way',
-        usage='{ exit, clear, help, list, ls, set, get, del, rm, add, rename, rnm } ...',
+        usage='{ exit, clear, help, chpass, list, ls, set, get, del, rm, add, rename, rnm } ...',
         exit_on_error=False,
         add_help=False
     )
@@ -13,6 +13,7 @@ def get_parser() -> argparse.ArgumentParser:
     general_parser = subparser.add_parser('exit', help='Close the application', exit_on_error=False)
     general_parser = subparser.add_parser('clear', help='Clear the screen', exit_on_error=False)
     general_parser = subparser.add_parser('help' , help='Display this help message', exit_on_error=False)
+    general_parser = subparser.add_parser('chpass' , help='Change the password manager', exit_on_error=False)
 
     list_parser = subparser.add_parser('list', help='List all app names', exit_on_error=False)
     list_parser.add_argument('-s', '--sort', action='store_true', help='Sorts the names based on the number of fields')
