@@ -1,6 +1,8 @@
 # Venv
-Scripts/
+Include
+Scripts
 vault.json
+pyvenv.cfg
 # ignore_me files (if you need to test something)
 ignore_me_*.*
 
