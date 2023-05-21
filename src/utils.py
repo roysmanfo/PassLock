@@ -1,20 +1,21 @@
 import base64
-import os, json
-from pathlib import Path
-from hashlib import pbkdf2_hmac
+import json
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 
-def update_vault(apps: dict, vault_path: str | Path, pm_hash: str = None):
-    with open(vault_path, 'r') as f:
+from user import User
+
+def update_vault(apps: dict, user: User, pm_hash: str = None):
+    with open(user.vault_path, 'r') as f:
         file = json.load(f)
         pm_hash: str = file['PM-hash'] if pm_hash is None else pm_hash
         updated_vault = {
             "PM-hash": pm_hash,
+            "Hint": "",
             "Apps": dict(sorted(apps.items()))
         }
 
-    with open(vault_path, 'w') as l:
+    with open(user.vault_path, 'w') as l:
         json.dump(updated_vault, l, indent=4)
         
 

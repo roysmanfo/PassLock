@@ -1,4 +1,5 @@
 import sys
+import os
 import getpass
 import getpass
 
@@ -43,7 +44,7 @@ A Password Master (PM) must be at least 8 characters long (max 32) and contain a
 
     # Create key
     if not from_command_line:
-        USER.create_vault(passw)    
+        USER.create_vault(passw, "", USER.vault_path)    
         return (utils.compute_key(passw=passw, iterations=100_000, key_length=32))
     
     return (utils.compute_key(passw=passw, iterations=100_000, key_length=32), passw)
@@ -56,10 +57,17 @@ def login(user: User) -> bytes:
     Returns the key needed to unlock the vault
     """
     try:
+        i = 0
         pm = getpass.getpass("Enter password manager (invisible):  ")
         while not user.validate_key(pm):
             print(f"{col.RED}Not the correct password{col.RESET}")
+            i+=1
+            if i >= 3:
+                print(f"{col.RED}You failed login {i} times. Type 'rst' or 'reset' to erase the vault and create another one{col.RESET}")
             pm = getpass.getpass("Enter password manager (invisible):  ")
+            
+            if not user.validate_key(pm) and pm in ['rst', 'reset']:
+                return generate_key(user)
 
     except KeyboardInterrupt:
         sys.exit(0)

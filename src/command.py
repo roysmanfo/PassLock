@@ -9,7 +9,7 @@ from utils import update_vault
 from user import User
 
 
-def run_command(args: ArgumentParser, key: bytes, vault_path: str | Path, user: User):
+def run_command(args: ArgumentParser, key: bytes, user: User):
     """
     # Examples of outputs from these commmands
     ## `list`
@@ -34,7 +34,7 @@ def run_command(args: ArgumentParser, key: bytes, vault_path: str | Path, user: 
         sys.exit(0)
 
     elif args.command in ['list', 'ls']:
-        with open(vault_path, 'r') as f:
+        with open(user.vault_path, 'r') as f:
             apps: dict = json.load(f)['Apps']
             
             if len(apps) == 0:
@@ -58,7 +58,7 @@ def run_command(args: ArgumentParser, key: bytes, vault_path: str | Path, user: 
         #     print(f'{col.RED}Too many arguments specified{col.RESET}')
         #     return
         
-        with open(vault_path, 'r') as f:
+        with open(user.vault_path, 'r') as f:
             apps: dict = json.load(f)['Apps']
             args.key: str = args.key.capitalize()
 
@@ -92,7 +92,7 @@ def run_command(args: ArgumentParser, key: bytes, vault_path: str | Path, user: 
             return
         
         appname, appfield = args.field.split('.')
-        with open(vault_path, 'r') as f:
+        with open(user.vault_path, 'r') as f:
             apps: dict = json.load(f)['Apps']
 
             appname:str = appname.capitalize()
@@ -113,7 +113,7 @@ def run_command(args: ArgumentParser, key: bytes, vault_path: str | Path, user: 
             
             dict.update(apps[mapped_keys[appname]], {fernet.encrypt(appfield.encode()).decode(): fernet.encrypt(" ".join(args.new_val).encode('utf-8')).decode('utf-8')})
             
-            update_vault(apps, vault_path)
+            update_vault(apps, user.vault_path)
             print(f'{col.GREEN}{appname} updated{col.RESET}')
 
     elif args.command in ['del', 'rm']:
@@ -124,7 +124,7 @@ def run_command(args: ArgumentParser, key: bytes, vault_path: str | Path, user: 
         # Remove the whole app from the vault
         for appkey in args.key:
             if len(appkey.split('.')) < 2:
-                with open(vault_path, 'r') as f:
+                with open(user.vault_path, 'r') as f:
                     apps: dict = json.load(f)['Apps']
 
                     keys = [fernet.decrypt(i).decode() for i in apps.keys()]
@@ -138,14 +138,14 @@ def run_command(args: ArgumentParser, key: bytes, vault_path: str | Path, user: 
                     
 
                     apps.pop(mapped_keys[appkey.capitalize()])
-                    update_vault(apps, vault_path)
+                    update_vault(apps, user.vault_path)
                     print(f'{col.GREEN}{appkey.capitalize()} removed{col.RESET}')
                 continue
             
             # Remove just a field
             appname, appfield = appkey.split('.')
 
-            with open(vault_path, 'r') as f:
+            with open(user.vault_path, 'r') as f:
                 apps: dict = json.load(f)['Apps']
                 appname:str = appname.capitalize()
                 appfield: str = appfield.capitalize()   
@@ -165,14 +165,14 @@ def run_command(args: ArgumentParser, key: bytes, vault_path: str | Path, user: 
 
                 apps[mapped_keys[appname]].pop([i for i in apps[mapped_keys[appname]].keys() if fernet.decrypt(i).decode() == appfield][0])
 
-            update_vault(apps, vault_path)
+            update_vault(apps, user.vault_path)
             print(f'{col.GREEN}{appname} updated{col.RESET}')
 
     elif args.command == 'add':
         if len(args.key) < 1:
             print(f'{col.RED}Not enough arguments specified{col.RESET}')
             return
-        with open(vault_path, 'r') as f:
+        with open(user.vault_path, 'r') as f:
             apps: dict = json.load(f)['Apps']
             new_apps = [i.capitalize() for i in args.key]
             keys = [fernet.decrypt(i).decode() for i in apps.keys()]
@@ -193,7 +193,7 @@ def run_command(args: ArgumentParser, key: bytes, vault_path: str | Path, user: 
                     continue
                 dict.update(apps, {fernet.encrypt(app.capitalize().encode()).decode(): {}})
 
-            update_vault(apps, vault_path)
+            update_vault(apps, user.vault_path)
             print(f'{col.GREEN}{" ".join(new_apps)} added{col.RESET}') if len(new_apps) > 0 else 0
     
     elif args.command == 'clear':
@@ -225,7 +225,7 @@ commands:
         original_key: str = args.key.capitalize()
         new_key: str = args.new_val.capitalize()
 
-        with open(vault_path, 'r') as f:
+        with open(user.vault_path, 'r') as f:
             apps: dict = json.load(f)['Apps']
             keys = [fernet.decrypt(i).decode() for i in apps.keys()]
             mapped_keys = {}
@@ -245,7 +245,7 @@ commands:
             apps[fernet.encrypt(new_key.encode()).decode()] = sub_dict
             del apps[mapped_keys[original_key]]
             
-            update_vault(apps, vault_path)
+            update_vault(apps, user.vault_path)
             print(f"{col.GREEN}Renamed '{original_key}' to '{new_key}'{col.RESET}")
 
     elif args.command == 'chpass':
@@ -254,7 +254,7 @@ commands:
 
         pm_hash = hashlib.sha512(password.encode()).hexdigest()
         
-        with open(vault_path, 'r') as f:
+        with open(user.vault_path, 'r') as f:
             apps: dict = json.load(f)['Apps']
             appfields = [(fernet.decrypt(i).decode(), [[fernet.decrypt(l).decode() for l in k] for k in apps[i].items()]) for i in apps]
             apps = {}
@@ -268,5 +268,5 @@ commands:
                     dict.update(fields, {fernet.encrypt(field[0].encode()).decode(): fernet.encrypt(field[1].encode()).decode()})
                 dict.update(apps, {fernet.encrypt(app[0].encode()).decode(): fields})
 
-            update_vault(apps, vault_path, pm_hash)
+            update_vault(apps, user.vault_path, pm_hash)
                         

@@ -4,13 +4,14 @@ import hashlib
 
 
 class User(object):
-    def __init__(self):
+    def __init__(self, vault_path: str):
         self.password_manager = self.get_PM()
         self.key = ""
+        self.vault_path = vault_path
 
     def get_PM(self) -> bytes:
         try:
-            with open(os.path.join(os.path.dirname(__file__), "data", "vault.json"), "r") as f:
+            with open(self.vault_path, "r") as f:
                 file = json.load(f)
                 return str(file['PM-hash']).encode()
 
@@ -45,12 +46,12 @@ class User(object):
 
         return True
 
-    def create_vault(self, password):
-        os.makedirs(os.path.join(os.path.dirname(
-            __file__), "data"), exist_ok=True)
-        with open(os.path.join(os.path.dirname(__file__), "data", "vault.json"), "w") as f:
+    def create_vault(self, password: str, hint: str):            
+        os.makedirs(self.vault_path.removesuffix("vault.json"), exist_ok=True)
+        with open(self.vault_path, "w") as f:
             context = {
                 "PM-hash": hashlib.sha512(password.encode()).hexdigest(),
+                "Hint": hint,
                 "Apps": {}
                 }
             json.dump(context, f, indent=4)
