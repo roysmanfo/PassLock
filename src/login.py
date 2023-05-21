@@ -8,6 +8,7 @@ from cryptography.hazmat.primitives import hashes
 
 from user import User
 from colors import col
+import utils
 
 def generate_key(USER: User) -> bytes:
     """
@@ -45,19 +46,7 @@ A Password Master (PM) must be at least 8 characters long (max 32) and contain a
     # Create key
     USER.create_vault(passw)
 
-    passw = passw.encode()
-    salt = b'5df'
-    iterations = 100_000
-    key_length = 32
-
-    kdf = pbkdf2_hmac(
-        algorithm=hashes.SHA3_512(),
-        length=key_length,
-        salt=salt,
-        iterations=iterations
-    )
-    key = base64.urlsafe_b64encode(kdf.derive(passw))
-    return key
+    return utils.compute_key(passw, 100_000, 32)
 
 
 def login(user: User) -> bytes:
@@ -75,18 +64,6 @@ def login(user: User) -> bytes:
         sys.exit(0)
 
     # Derive key
+    return utils.compute_key(pm, 100_000, 32)
 
-    pm = pm.encode()
-    salt = b'5df'
-    iterations = 100_000
-    key_length = 32
-
-    kdf = PBKDF2HMAC(
-        algorithm=hashes.SHA3_512(),
-        length=key_length,
-        salt=salt,
-        iterations=iterations
-    )
-    key = base64.urlsafe_b64encode(kdf.derive(pm))
-    return key
 
