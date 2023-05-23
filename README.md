@@ -1,6 +1,4 @@
-# PassLock
-
-Save all your password in a secure way on your local device.
+![PassLock logo](img/logos/png/logo-no-background.png)
 
 ## How does it work
 
