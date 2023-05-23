@@ -1,4 +1,4 @@
-![PassLock logo](img/logos/png/logo-no-background.png)
+![PassLock logo](img/logos/png/logo-line-color.png)
 
 ## How does it work
 
