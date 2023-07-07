@@ -220,8 +220,7 @@ commands:
     rename              Rename a key or a field (i.e `rename work.code passkey` or `rename work job`)
     rnm                 Rename a key or a field (i.e `rnm work.code passkey` or `rnm work job`)
 ''')
-    # original_key = Spotify.usernameid
-    # new_key      = username-id
+
     elif args.command in ['rename', 'rnm']:
         # Rename a key or field
         original_key: str = args.key.capitalize()
