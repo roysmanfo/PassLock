@@ -220,7 +220,8 @@ commands:
     rename              Rename a key or a field (i.e `rename work.code passkey` or `rename work job`)
     rnm                 Rename a key or a field (i.e `rnm work.code passkey` or `rnm work job`)
 ''')
-
+    # original_key = Spotify.usernameid
+    # new_key      = username-id
     elif args.command in ['rename', 'rnm']:
         # Rename a key or field
         original_key: str = args.key.capitalize()
@@ -233,19 +234,42 @@ commands:
             for enc_key in apps.keys():
                 dict.update(mapped_keys, {fernet.decrypt(enc_key).decode(): enc_key})
             
+            # Check the app name
             if len(original_key.split('.')) == 1:
                 if original_key not in keys:
                     print(f'{col.RED}App not found{col.RESET}')
                     return
-                
-            if new_key in keys:
+            elif len(original_key.split('.')) == 2:
+                if original_key.split('.')[0] not in keys:
+                    print(f'{col.RED}App not found{col.RESET}')
+                    return
+            else:
+                print(f'{col.RED}Syntax error{col.RESET}')
+                return
+            
+            # Check if we want to rename an app or a field
+            if len(original_key.split('.')) == 1 and new_key in keys:
                 print(f"{col.RED}There is already an app with name {new_key.capitalize()}{col.RESET}")
                 return
-                
-            sub_dict = apps[mapped_keys[original_key]]
-            apps[fernet.encrypt(new_key.encode()).decode()] = sub_dict
-            del apps[mapped_keys[original_key]]
+            elif new_key in [fernet.decrypt(i).decode() for i in apps]:
+                print(f"{col.RED}There is already a field with name {new_key.capitalize()}{col.RESET}")
+                return
             
+            # Create a new dictionary/field with the updated name and delete the old one
+            if len(original_key.split('.')) == 1:
+                sub_dict = apps[mapped_keys[original_key]]
+                apps[fernet.encrypt(new_key.encode()).decode()] = sub_dict
+                del apps[mapped_keys[original_key]]
+            else:
+                appname, fieldname = [i.capitalize() for i in original_key.split('.')]
+                mapped_fields = {}
+                for enc_key in apps[mapped_keys[appname]].keys():
+                    dict.update(mapped_fields, {fernet.decrypt(enc_key).decode(): enc_key})
+                old_field = mapped_fields[fieldname] # get the old value of the field
+                field_val = apps[mapped_keys[appname]][old_field]
+                apps[mapped_keys[appname]][fernet.encrypt(new_key.encode()).decode()] = field_val
+                del apps[mapped_keys[appname]][mapped_fields[fieldname]]
+
             update_vault(user, apps=apps)
             print(f"{col.GREEN}Renamed '{original_key}' to '{new_key}'{col.RESET}")
 
