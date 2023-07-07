@@ -48,5 +48,10 @@ def get_parser() -> argparse.ArgumentParser:
     sethint_parser = subparser.add_parser('sethint', help='Set a hint for when you forget the password master (i.e sethint your dog\'s name)', exit_on_error=False)
     sethint_parser.add_argument('hint', nargs='*',  help='hint (can be a sentence) for when you forget the password master')
 
+    sethint_parser = subparser.add_parser('fenc', help='File Encrypt: excrypt 1 or more text file (i.e. fenc file1.txt path/to/file2.txt)', exit_on_error=False)
+    sethint_parser.add_argument('files', nargs='*', help='space separated file paths')
+
+    sethint_parser = subparser.add_parser('fdec', help='File Encrypt: excrypt 1 or more text file (i.e. fenc file1.txt path/to/file2.txt)', exit_on_error=False)
+    sethint_parser.add_argument('files', nargs='*', help='space separated file paths')
 
     return parser

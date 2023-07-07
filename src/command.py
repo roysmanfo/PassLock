@@ -208,6 +208,8 @@ commands:
     exit                Close the application
     clear               Clear the screen
     chpass              Change the password manager.
+    fenc                File Encrypt: encrypt 1 or more text file (i.e. fenc file1.txt path/to/file2.txt)
+    fdec                File Decrypt: decript 1 or more text file (i.e. fdec file1.txt path/to/file2.txt)
     sethint             Set a hint for when you forget the password master (i.e sethint your dog\'s name)
     help                Display this help message
     list                List all app names
@@ -306,3 +308,78 @@ commands:
         else:            
             update_vault(user, hint=hint)
             print(f"{col.GREEN}Hint modified{col.RESET}")
+    
+    elif args.command == 'fenc':
+        files = args.files
+        
+        # Check for errors in the input
+        if len(files) == 0:
+            print(f'{col.RED}No file path provided{col.RESET}')
+            return
+        
+        files = [Path(file).resolve() for file in files]
+
+        for file in files:
+            if not os.path.isfile(file):
+                print(f'{col.RED}`{file}` is not a file{col.RESET}')
+                return
+            
+            if not os.path.exists(file):
+                print(f'{col.RED}File `{file}` does not exist{col.RESET}')
+                return
+            
+        # Try to overwrite all given files
+        for file in files:
+            try:
+                with open(file, 'r') as f:
+                    if f.readable():
+                        content = f.readlines()
+                        with open(file, 'w') as f:
+                            content = [fernet.encrypt(i.encode()).decode() for i in content]
+                            content = ["".join(hex(ord(c))[2:] for c in i) + '\n' for i in content]
+
+                            f.writelines(content)
+                    else:
+                        print(f'{col.RED}`{file}` is not readable{col.RESET}')
+
+            except PermissionError:
+                print(f'{col.RED}Do not have permissions to overwrite file `{file}`{col.RESET}')
+
+    elif args.command == 'fdec':
+        files = args.files
+        
+        # Check for errors in the input
+        if len(files) == 0:
+            print(f'{col.RED}No file path provided{col.RESET}')
+            return
+        
+        files = [Path(file).resolve() for file in files]
+
+        for file in files:
+            if not os.path.isfile(file):
+                print(f'{col.RED}`{file}` is not a file{col.RESET}')
+                return
+            
+            if not os.path.exists(file):
+                print(f'{col.RED}File `{file}` does not exist{col.RESET}')
+                return
+            
+        # Try to overwrite all given files
+        for file in files:
+            try:
+                with open(file, 'r') as f:
+                    if f.readable():
+                        content = f.readlines()
+                        with open(file, 'w') as f:
+                            content = [bytes.fromhex(i).decode() for i in content]
+                            content = [fernet.decrypt(i).decode() for i in content]
+                            f.writelines(content)
+                    else:
+                        print(f'{col.RED}`{file}` is not readable{col.RESET}')
+
+            except PermissionError:
+                print(f'{col.RED}Do not have permissions to overwrite file `{file}`{col.RESET}')
+
+        
+        
+
