@@ -208,7 +208,7 @@ commands:
     exit                Close the application
     clear               Clear the screen
     chpass              Change the password manager.
-    sethint     	    Set a hint for when you forget the password master (i.e sethint your dog\'s name)
+    sethint             Set a hint for when you forget the password master (i.e sethint your dog\'s name)
     help                Display this help message
     list                List all app names
     ls                  List all app names
