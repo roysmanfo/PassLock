@@ -17,6 +17,12 @@ def main():
     USER.key = login.generate_key(USER) if USER.password_manager == b"" else login.login(USER)
     print(f"{col.GREEN}Logged sucessfully{col.RESET}")
     parser = get_parser()
+    command.envars.init(user=USER, key=USER.key)
+
+    # There is no need to keep this costant in memory
+    # Once everything is set up
+    del USER
+
     while True:
         try:
             print(f"{col.BLUE}PassLock> {col.RESET}", end='')
@@ -25,7 +31,7 @@ def main():
             while args.count('') > 0:
                 args.remove('')
             args[0].lower()
-            command.run_command(args=parser.parse_args(args), key=USER.key, user=USER)
+            command.run_command(args=parser.parse_args(args))
 
         except KeyboardInterrupt:
             break
