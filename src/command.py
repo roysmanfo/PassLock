@@ -356,34 +356,34 @@ def run_command(args: ArgumentParser):
         sys.exit(0)
 
     elif args.command in ['list', 'ls']:
-        cmd_list(args)
+        cmd_list()
 
     elif args.command == 'get':
         cmd_get()
     
     elif args.command == 'set':
-        cmd_set(args)
+        cmd_set()
 
     elif args.command in ['del', 'rm']:
-        cmd_del(args)
+        cmd_del()
 
     elif args.command == 'add':
-        cmd_add(args)
+        cmd_add()
 
     elif args.command in ['rename', 'rnm']:
-        cmd_rnm(args)
+        cmd_rnm()
 
     elif args.command == 'chpass':
         cmd_chpass()
 
     elif args.command == 'sethint':
-        cmd_sethint(args)
+        cmd_sethint()
     
     elif args.command == 'fenc':
-        cmd_fenc(args)
+        cmd_fenc()
 
     elif args.command == 'fdec':
-        cmd_fdec(args)
+        cmd_fdec()
 
     elif args.command == 'clear':
         os.system("clear || cls")
