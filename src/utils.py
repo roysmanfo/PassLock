@@ -21,14 +21,12 @@ def update_vault(user: User, pm_hash: str = None, hint: str = None, apps: dict =
 
 
 
-def compute_key(passw: str, iterations: int = 100_000, key_length: int = 32) -> bytes:
+def compute_key(passw: str, iterations: int = 100_000, key_length: int = 32, salt: str = b"5df") -> bytes:
     """
     Uses pbkdf2_hmac to compute the key from the Password Master
     """
 
     passw = passw.encode()
-    salt = b'5df'
-
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA3_512(),
         length=key_length,
