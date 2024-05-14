@@ -56,7 +56,6 @@ class Vault():
             self.connection.execute("CREATE TABLE PasswordManager ( id INTEGER PRIMARY KEY, pm_hash TEXT NOT NULL, hint TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);")
             self.connection.execute("CREATE TABLE Applications ( id INTEGER PRIMARY KEY, name TEXT NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);")
             self.connection.execute("CREATE TABLE Fields ( id INTEGER PRIMARY KEY, application_id INTEGER NOT NULL, name TEXT NOT NULL, value TEXT NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (application_id) REFERENCES Applications(id));")
-            self.connection.execute("CREATE TABLE Credentials ( id INTEGER PRIMARY KEY, application_id INTEGER NOT NULL, field_id INTEGER, value TEXT NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (application_id) REFERENCES Applications(id), FOREIGN KEY (field_id) REFERENCES Fields(id));")
         else:
             self.connection = sqlite3.connect(self.path)
 
