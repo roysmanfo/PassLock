@@ -74,7 +74,6 @@ class Vault():
         applications = [
             Application(a[0], a[1], datetime.fromisoformat(a[2])) for a in res
         ]
-        print([a.__str__() for a in applications])
         return applications
     
     def fetch_fields(self, name: Optional[str] = None, value: Optional[str] = None) -> list[Field]:
@@ -94,14 +93,11 @@ class Vault():
         fields = [
             Field(a[0], a[1], a[2], datetime.fromisoformat(a[3])) for a in res
         ]
-        print([a.__str__() for a in fields])
         return fields
 
 
 vault = Vault()
 vault.init()
-
-vault.fetch_fields()
 
 
 
