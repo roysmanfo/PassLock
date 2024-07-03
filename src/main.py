@@ -6,7 +6,7 @@ from vault import vault
 if __name__ == '__main__':
 
     if vault.empty:
-        # just during development
+        # ! just during development
         vault.key = auth.register(vault, "PassLock")
 
     gui.page.login_page(auth.validate_password)
