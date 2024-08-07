@@ -25,14 +25,18 @@ def main():
 
     while True:
         try:
-            print(f"{col.BLUE}PassLock> {col.RESET}", end='')
-            args = input()
-            args = args.strip().split(' ')
-            while args.count('') > 0:
-                args.remove('')
-            args[0].lower()
+            args = sys.argv[1:] if (use_sys := len(sys.argv) > 1) else None
+            if not use_sys:
+                print(f"{col.BLUE}PassLock> {col.RESET}", end='')
+                args = input()
+                args = args.strip().split(' ')
+                while args.count('') > 0:
+                    args.remove('')
+                args[0].lower()
             command.run_command(args=parser.parse_args(args))
 
+            if use_sys:
+                break
         except KeyboardInterrupt:
             break
 
