@@ -389,7 +389,7 @@ def run_command(args: ArgumentParser):
         os.system("cls" if os.name == 'nt' else "clear")
 
     elif args.command in ['-h', '--help','help']:
-        print('''usage: { exit, clear, help, chpass, list, ls, set, get, del, rm, add, rename, rnm } ...
+        print('''usage: command [options] ...
 
 Store your passwords localy in a secure way
 
