@@ -10,10 +10,10 @@ def get_parser() -> argparse.ArgumentParser:
     )
     subparser = parser.add_subparsers(dest='command')
 
-    general_parser = subparser.add_parser('exit', help='Close the application', exit_on_error=False)
-    general_parser = subparser.add_parser('clear', help='Clear the screen', exit_on_error=False)
-    general_parser = subparser.add_parser('help' , help='Display this help message', exit_on_error=False)
-    general_parser = subparser.add_parser('chpass' , help='Change the password manager', exit_on_error=False)
+    subparser.add_parser('exit', help='Close the application', exit_on_error=False)
+    subparser.add_parser('clear', help='Clear the screen', exit_on_error=False)
+    subparser.add_parser('help' , help='Display this help message', exit_on_error=False)
+    subparser.add_parser('chpass' , help='Change the password manager', exit_on_error=False)
 
     list_parser = subparser.add_parser('list', help='List all app names', exit_on_error=False)
     list_parser.add_argument('-s', '--sort', action='store_true', help='Sorts the names based on the number of fields')
@@ -48,10 +48,10 @@ def get_parser() -> argparse.ArgumentParser:
     sethint_parser = subparser.add_parser('sethint', help='Set a hint for when you forget the password master (i.e sethint your dog\'s name)', exit_on_error=False)
     sethint_parser.add_argument('hint', nargs='*',  help='hint (can be a sentence) for when you forget the password master')
 
-    sethint_parser = subparser.add_parser('fenc', help='File Encrypt: excrypt 1 or more text file (i.e. fenc file1.txt path/to/file2.txt)', exit_on_error=False)
-    sethint_parser.add_argument('files', nargs='*', help='space separated file paths')
+    fenc_parser = subparser.add_parser('fenc', help='File Encrypt: excrypt 1 or more text file (i.e. fenc file1.txt path/to/file2.txt)', exit_on_error=False)
+    fenc_parser.add_argument('files', nargs='*', help='space separated file paths')
 
-    sethint_parser = subparser.add_parser('fdec', help='File Encrypt: excrypt 1 or more text file (i.e. fenc file1.txt path/to/file2.txt)', exit_on_error=False)
-    sethint_parser.add_argument('files', nargs='*', help='space separated file paths')
+    fdec_parser = subparser.add_parser('fdec', help='File Encrypt: excrypt 1 or more text file (i.e. fenc file1.txt path/to/file2.txt)', exit_on_error=False)
+    fdec_parser.add_argument('files', nargs='*', help='space separated file paths')
 
     return parser
