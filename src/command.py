@@ -386,7 +386,7 @@ def run_command(args: ArgumentParser):
         cmd_fdec()
 
     elif args.command == 'clear':
-        os.system("clear || cls")
+        os.system("cls" if os.name == 'nt' else "clear")
 
     elif args.command in ['-h', '--help','help']:
         print('''usage: { exit, clear, help, chpass, list, ls, set, get, del, rm, add, rename, rnm } ...
