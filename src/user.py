@@ -15,13 +15,7 @@ class User(object):
                 file = json.load(f)
                 return str(file['PM-hash']).encode()
 
-        except FileNotFoundError:
-            return b""
-
-        except json.JSONDecodeError:
-            return b""
-
-        except KeyError:
+        except (FileNotFoundError, json.JSONDecodeError, KeyError):
             return b""
 
     def validate_key(self, key: str) -> bool:
