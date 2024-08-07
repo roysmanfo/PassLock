@@ -7,7 +7,7 @@ from user import User
 from colors import col
 import utils
 
-def generate_key(USER: User, from_command_line: bool = False) -> bytes or tuple:
+def generate_key(USER: User, from_command_line: bool = False) -> bytes | tuple[bytes, str]:
     """
     ### Allows user to create a new password manager instance
     Returns the key needed to unlock the vault 
