@@ -51,7 +51,7 @@ def cmd_get():
     
     with open(envars.user.vault_path, 'r') as f:
         apps: dict = json.load(f)['Apps']
-        envars.args.key: str = envars.args.key.capitalize()
+        envars.args.key = envars.args.key.capitalize()
 
         keys = [envars.fernet.decrypt(i).decode() for i in apps.keys()]
 
