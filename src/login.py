@@ -7,12 +7,14 @@ from user import User
 from colors import col
 import utils
 
-def generate_key(USER: User, from_command_line: bool = False) -> bytes | tuple[bytes, str]:
+def generate_key(USER: User, from_user: bool = False) -> bytes | tuple[bytes, str]:
     """
     ### Allows user to create a new password manager instance
-    Returns the key needed to unlock the vault 
+    Returns the key needed to unlock the vault
+
+    When `from_user` is true, also the plain text password is returned
     """
-    if not from_command_line:
+    if not from_user:
         print("""
 In order to secure your password at best, you have to create a Password Master
 
@@ -43,7 +45,7 @@ A Password Master (PM) must be at least 8 characters long (max 32) and contain a
                     f"{col.RED}Passwords do not match, insert again the password{col.RESET}")
 
     # Create key
-    if not from_command_line:
+    if not from_user:
         USER.create_vault(passw, "")    
         return (utils.compute_key(passw=passw, iterations=100_000, key_length=32))
     
