@@ -38,10 +38,10 @@ class User(object):
             assert isinstance(data, (int, bytes)), "data if not None, should be of type int or bytes"
 
         if data is None:
-            data = int.from_bytes(os.urandom(size))
+            data = int.from_bytes(os.urandom(size), byteorder="big")
             size = 1
         elif isinstance(data, bytes):
-            data = int.from_bytes(data)
+            data = int.from_bytes(data, byteorder="big")
 
         return ctypes.memset(address, data, size)
 
