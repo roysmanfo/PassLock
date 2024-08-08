@@ -2,6 +2,7 @@ import os
 import json
 import hashlib
 
+from colors import col
 
 class User(object):
     def __init__(self, vault_path: str):
@@ -9,13 +10,18 @@ class User(object):
         self.key = ""
         self.password_manager = self.get_PM()
 
-    def get_PM(self) -> bytes:
+    def get_PM(self, *, verbose: bool = False) -> bytes:
         try:
             with open(self.vault_path, "r") as f:
                 file = json.load(f)
                 return str(file['PM-hash']).encode()
 
-        except (FileNotFoundError, json.JSONDecodeError, KeyError):
+        except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
+            if verbose:
+                if isinstance(e, FileNotFoundError):
+                    print(f"{col.YELLOW}file '{self.vault_path}' not found, creating new vault{col.RESET}")
+                else:
+                    print(f"{col.RED}found currupted file{col.RESET}({e}: {e.msg})")
             return b""
 
     def validate_key(self, key: str) -> bool:
