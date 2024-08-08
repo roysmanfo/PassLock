@@ -18,6 +18,9 @@ def main():
     print(f"{col.GREEN}Logged sucessfully{col.RESET}")
     parser = get_parser()
     command.envars.init(user=USER, key=USER.key)
+    
+    # completely erase the key from memory
+    USER.erase_key()
 
     # There is no need to keep this costant in memory
     # Once everything is set up

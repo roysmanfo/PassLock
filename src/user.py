@@ -1,6 +1,8 @@
+import ctypes
 import os
 import json
 import hashlib
+from typing import Optional, Union
 
 from colors import col
 
@@ -11,6 +13,39 @@ class User(object):
         
         # the hash of the password
         self.password_manager = self.get_PM()
+
+    def erase_key(self):
+        """
+        Remove the key from memory and make it unrecoverable
+        """
+
+        key_address = id(self.key)
+        key_size = len(self.key)
+        self._scrub_memory(key_address, key_size)
+
+        # dereference key from memory location
+        del self.key
+        self.key = b""
+
+    def _scrub_memory(self, address: int, size: int, data: Optional[Union[int, bytes]] = None) -> int:
+        """
+        Overwrite the memory at the given address with random data.
+
+        if `data` is not none, should be of type int or bytes
+        """
+
+        if data is not None:
+            assert isinstance(data, (int, bytes)), "data if not None, should be of type int or bytes"
+
+        if data is None:
+            data = int.from_bytes(os.urandom(size))
+            size = 1
+        elif isinstance(data, bytes):
+            data = int.from_bytes(data)
+
+        return ctypes.memset(address, data, size)
+
+
 
     def get_PM(self, *, verbose: bool = False) -> bytes:
         try:
