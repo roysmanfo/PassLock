@@ -14,17 +14,19 @@ def generate_key(USER: User, from_user: bool = False) -> bytes | tuple[bytes, st
 
     When `from_user` is true, also the plain text password is returned
     """
+
     if not from_user:
         print("""
 In order to secure your password at best, you have to create a Password Master
 
 A Password Master (PM) is a password you will have to remember and make sure to not forget
-as we won't be able to restore or change it if forgotten, for security reasons.
-
-A Password Master (PM) must be at least 8 characters long (max 32) and contain at least 1 uppercase letter
-    """)
+as we won't be able to restore or change it if forgotten, for security reasons.""")
+    
+    print("A Password Master (PM) must be at least 8 characters", 
+          "long (max 32) and contain at least 1 uppercase letter")
         
     approved = False
+    passw = ""
 
     while not approved:
         passw: str = getpass.getpass("Your Password Manager:  ")
@@ -35,14 +37,8 @@ A Password Master (PM) must be at least 8 characters long (max 32) and contain a
             passw: str = getpass.getpass("Your Password Manager:  ")
 
         else:
-
-            passw2 = getpass.getpass("Your Password Manager (again):  ")
-
-            if passw == passw2:
-                approved = True
-            else:
-                print(
-                    f"{col.RED}Passwords do not match, insert again the password{col.RESET}")
+            if not (approved := passw == getpass.getpass("Your Password Manager (again):  ")):
+                print(f"{col.RED}Passwords do not match, insert again the password{col.RESET}")
 
     # Create key
     if not from_user:

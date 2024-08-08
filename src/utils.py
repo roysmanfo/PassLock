@@ -10,10 +10,16 @@ from user import User
 def update_vault(user: User, pm_hash: Optional[str] = None, hint: Optional[str] = None, apps: Optional[dict] = None):
     with open(user.vault_path, 'r') as f:
         file = json.load(f)
-        pm_hash: str = file['PM-hash'] if pm_hash is None else pm_hash
+        
+        if pm_hash is None:
+            pm_hash: str = file['PM-hash']
+
+        if hint is None:
+            hint: str = file['Hint']
+
         updated_vault = {
-            "PM-hash": pm_hash if pm_hash is None else file['PM-hash'],
-            "Hint": hint if hint is not None else file['Hint'],
+            "PM-hash": pm_hash,
+            "Hint": hint,
             "Apps": dict(sorted(apps.items())) if apps is not None else file["Apps"] 
         }
 
