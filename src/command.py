@@ -4,6 +4,7 @@ from cryptography.fernet import Fernet
 from argparse import ArgumentParser
 from pathlib import Path
 
+import login
 from colors import col
 from utils import update_vault
 from user import User
@@ -248,11 +249,9 @@ def cmd_rnm():
         print(f"{col.GREEN}Renamed '{original_key}' to '{new_key}'{col.RESET}")
 
 def cmd_chpass():
-    import login
-    new_key, password = login.generate_key(envars.user, from_command_line=True)
-
+    new_key, password = login.generate_key(envars.user, from_user=True)
     pm_hash = hashlib.sha512(password.encode()).hexdigest()
-    
+
     with open(envars.user.vault_path, 'r') as f:
         apps: dict = json.load(f)['Apps']
         appfields = [(envars.fernet.decrypt(i).decode(), [[envars.fernet.decrypt(l).decode() for l in k] for k in apps[i].items()]) for i in apps]
