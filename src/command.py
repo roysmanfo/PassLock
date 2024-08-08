@@ -304,14 +304,12 @@ def cmd_fenc():
     # Try to overwrite all given files
     for file in files:
         try:
-            with open(file, 'r') as f:
+            with open(file, 'rb') as f:
                 if f.readable():
-                    content = f.readlines()
-                    with open(file, 'w') as f:
-                        content = [envars.fernet.encrypt(i.encode()).decode() for i in content]
-                        content = ["".join(hex(ord(c))[2:] for c in i) + '\n' for i in content]
-
-                        f.writelines(content)
+                    content = f.read()
+                    with open(file, 'wb') as f:
+                        content = envars.fernet.encrypt(content)
+                        f.write(content)
                 else:
                     print(f'{col.RED}`{file}` is not readable{col.RESET}')
 
@@ -340,13 +338,12 @@ def cmd_fdec():
     # Try to overwrite all given files
     for file in files:
         try:
-            with open(file, 'r') as f:
+            with open(file, 'rb') as f:
                 if f.readable():
-                    content = f.readlines()
-                    with open(file, 'w') as f:
-                        content = [bytes.fromhex(i).decode() for i in content]
-                        content = [envars.fernet.decrypt(i).decode() for i in content]
-                        f.writelines(content)
+                    content = f.read()
+                    with open(file, 'wb') as f:
+                        content = envars.fernet.decrypt(content)
+                        f.write(content)
                 else:
                     print(f'{col.RED}`{file}` is not readable{col.RESET}')
 
