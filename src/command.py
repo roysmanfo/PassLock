@@ -102,7 +102,16 @@ def cmd_set():
         if appfield not in stored_keys:
             print(f'{col.CYAN}Creating new field {appfield}{col.RESET}')
         
-        dict.update(apps[mapped_keys[appname]], {envars.fernet.encrypt(appfield.encode()).decode(): envars.fernet.encrypt(" ".join(envars.args.new_val).encode('utf-8')).decode('utf-8')})
+        field_name = envars.fernet.encrypt(appfield.encode('utf-8'))
+        field_val = " ".join(envars.args.new_val).encode('utf-8')
+        apps.update
+        dict.update(
+            apps[mapped_keys[appname]],
+            {
+                field_name.decode('utf-8'): envars.fernet.encrypt(field_val).decode('utf-8')
+            }
+        )
+        del mapped_keys
         
         update_vault(envars.user, apps=apps)
         print(f'{col.GREEN}{appname} updated{col.RESET}')
