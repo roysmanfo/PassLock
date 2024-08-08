@@ -8,6 +8,8 @@ class User(object):
     def __init__(self, vault_path: str):
         self.vault_path = vault_path
         self.key = ""
+        
+        # the hash of the password
         self.password_manager = self.get_PM()
 
     def get_PM(self, *, verbose: bool = False) -> bytes:
