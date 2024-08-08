@@ -69,6 +69,8 @@ def login(user: User) -> bytes:
                 print(f"{col.CYAN}Hint:{col.RESET}", hint) if hint != "" else 0
             pm = getpass.getpass("Enter password manager (invisible):  ")
             
+            # when resetting the key, access to the existing vault is lost
+            # (no way of re-encrypting without the lost key)
             if not user.validate_key(pm) and pm in ['rst', 'reset']:
                 return generate_key(user)
 
