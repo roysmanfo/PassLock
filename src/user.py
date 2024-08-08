@@ -63,7 +63,7 @@ class User(object):
 
     def validate_key(self, key: str) -> bool:
         key = hashlib.sha512(key.encode()).hexdigest()
-        return True if key == self.password_manager.decode() else False
+        return key == self.password_manager.decode()
 
     def check_password(self, passw: str) -> bool:
         """
