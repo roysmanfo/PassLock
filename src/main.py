@@ -40,12 +40,17 @@ def main():
 
             if use_sys:
                 break
+        
         except KeyboardInterrupt:
-            break
+            print()
 
         except ArgumentError as e:
             error = 'I' + e.__str__().removeprefix('argument command: i')
             print(f'{col.RED}{error}{col.RESET}')
+        
+        except:
+            print(f'{col.RED}Err: the vault may be corrupt{col.RESET}')
+            sys.exit(1)
 
     sys.exit(0)
 
