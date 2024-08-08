@@ -95,6 +95,7 @@ def cmd_set():
             print(f'{col.RED}App not found{col.RESET}')
             return
 
+        # create a temporary mapping: "key_name" (decrypted) -> key_name (encrypted)
         mapped_keys = {}
         for enc_key in apps.keys():
             dict.update(mapped_keys, {envars.fernet.decrypt(enc_key).decode(): enc_key})
