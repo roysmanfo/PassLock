@@ -1,10 +1,25 @@
+import sys as _sys
 import argparse
 
-def get_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
+class Parser(argparse.ArgumentParser):
+    def error(self, message):
+        if message:
+            self._print_message(message, _sys.stderr)
+            print()
+
+    def exit(self, status: int | None = None, message: str | None = None):
+        # Check if the help message has been shown
+        if not message and not status:
+            return
+        if message:
+            self._print_message(message, _sys.stderr)
+            print()
+
+def get_parser() -> Parser:
+    parser = Parser(
         prog='PassLock',
         description='Store your passwords localy in a secure way',
-        usage='{ exit, clear, help, chpass, list, ls, set, get, del, rm, add, rename, rnm } ...',
+        usage='',
         exit_on_error=False,
         add_help=False
     )

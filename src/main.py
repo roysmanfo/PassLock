@@ -28,7 +28,7 @@ def main():
 
     while True:
         try:
-            args = sys.argv[1:] if (use_sys := len(sys.argv) > 1) else None
+            parsed_args = sys.argv[1:] if (use_sys := len(sys.argv) > 1) else None
             if not use_sys:
                 print(f"{col.BLUE}PassLock> {col.RESET}", end='')
                 args = input()
@@ -36,7 +36,10 @@ def main():
                 while args.count('') > 0:
                     args.remove('')
                 args[0].lower()
-            command.run_command(args=parser.parse_args(args))
+                parsed_args = parser.parse_args(args)
+            
+            if "-h" not in args and "--help" not in args:
+                command.run_command(parsed_args)
 
             if use_sys:
                 break
@@ -46,6 +49,11 @@ def main():
 
         except ArgumentError as e:
             error = 'I' + e.__str__().removeprefix('argument command: i')
+
+            if error.startswith("Invalid choice:"):
+                err = error[error.index("'"):error.index("' (choose from")+1].strip()
+                error = f"invalid command: {err}"
+
             print(f'{col.RED}{error}{col.RESET}')
         
         except Exception as e:
