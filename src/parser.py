@@ -64,9 +64,9 @@ def get_parser() -> Parser:
     sethint_parser.add_argument('hint', nargs='*',  help='hint (can be a sentence) for when you forget the password master')
 
     fenc_parser = subparser.add_parser('fenc', help='File Encrypt: excrypt 1 or more text file (i.e. fenc file1.txt path/to/file2.txt)', exit_on_error=False)
-    fenc_parser.add_argument('files', nargs='*', help='space separated file paths')
+    fenc_parser.add_argument('files', nargs='+', help='space separated file paths')
 
     fdec_parser = subparser.add_parser('fdec', help='File Encrypt: excrypt 1 or more text file (i.e. fenc file1.txt path/to/file2.txt)', exit_on_error=False)
-    fdec_parser.add_argument('files', nargs='*', help='space separated file paths')
+    fdec_parser.add_argument('files', nargs='+', help='space separated file paths')
 
     return parser
