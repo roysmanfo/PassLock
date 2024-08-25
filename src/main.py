@@ -26,9 +26,9 @@ def main():
     # Once everything is set up
     del USER
 
+    args = sys.argv[1:] if (use_sys := len(sys.argv) > 1) else []
     while True:
         try:
-            parsed_args = sys.argv[1:] if (use_sys := len(sys.argv) > 1) else None
             if not use_sys:
                 print(f"{col.BLUE}PassLock> {col.RESET}", end='')
                 args = input()
@@ -36,8 +36,8 @@ def main():
                 while args.count('') > 0:
                     args.remove('')
                 args[0].lower()
-                parsed_args = parser.parse_args(args)
-            
+
+            parsed_args = parser.parse_args(args)
             if "-h" not in args and "--help" not in args:
                 command.run_command(parsed_args)
 
@@ -48,9 +48,12 @@ def main():
             print()
 
         except ArgumentError as e:
-            error = 'I' + e.__str__().removeprefix('argument command: i')
+            error = e.__str__()
 
-            if error.startswith("Invalid choice:"):
+            if error.startswith("argument command: i"):
+                error = 'I' + e.__str__().removeprefix('argument command: i')
+
+            elif error.startswith("Invalid choice:"):
                 err = error[error.index("'"):error.index("' (choose from")+1].strip()
                 error = f"invalid command: {err}"
 
@@ -61,6 +64,10 @@ def main():
             print(f'{col.RED}Err: the vault may have been altered{col.RESET}')
             print(f'{col.RED}{e} {col.RESET}')
             sys.exit(1)
+        
+        finally:
+            # may resolve some parsing issues
+            args = []
 
     sys.exit(0)
 
