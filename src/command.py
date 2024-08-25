@@ -2,12 +2,12 @@ import hashlib
 import sys, os, json
 from cryptography.fernet import Fernet
 from argparse import ArgumentParser
-from pathlib import Path
 
 import login
 from colors import col
 from utils import update_vault
 from user import User
+import utils
 
 class EnVars:
     """
@@ -283,22 +283,21 @@ def cmd_sethint():
         print(f"{col.GREEN}Hint modified{col.RESET}")
 
 def cmd_fenc():
-    files = envars.args.files
-        
-    # Check for errors in the input
-    if len(files) == 0:
-        print(f'{col.RED}No file path provided{col.RESET}')
+    try:
+        files = utils.path_escape(" ".join(envars.args.files))
+    except Exception as e:
+        print(f'{col.RED}Err: {e}{col.RESET}')
         return
-    
-    files = [Path(file).resolve() for file in files]
 
+    # Check for errors in the input
+    # don't do anything if there are errors
     for file in files:
-        if not os.path.isfile(file):
-            print(f'{col.RED}`{file}` is not a file{col.RESET}')
+        if not file.exists():
+            print(f'{col.RED}File `{file}` does not exist{col.RESET}')
             return
         
-        if not os.path.exists(file):
-            print(f'{col.RED}File `{file}` does not exist{col.RESET}')
+        if not file.is_file():
+            print(f'{col.RED}`{file}` is not a file{col.RESET}')
             return
         
     # Try to overwrite all given files
@@ -317,22 +316,21 @@ def cmd_fenc():
             print(f'{col.RED}Do not have permissions to overwrite file `{file}`{col.RESET}')
 
 def cmd_fdec():
-    files = envars.args.files
-        
-    # Check for errors in the input
-    if len(files) == 0:
-        print(f'{col.RED}No file path provided{col.RESET}')
+    try:
+        files = utils.path_escape(" ".join(envars.args.files))
+    except Exception as e:
+        print(f'{col.RED}Err: {e}{col.RESET}')
         return
-    
-    files = [Path(file).resolve() for file in files]
 
+    # Check for errors in the input
+    # don't do anything if there are errors
     for file in files:
-        if not os.path.isfile(file):
-            print(f'{col.RED}`{file}` is not a file{col.RESET}')
+        if not file.exists():
+            print(f'{col.RED}File `{file}` does not exist{col.RESET}')
             return
         
-        if not os.path.exists(file):
-            print(f'{col.RED}File `{file}` does not exist{col.RESET}')
+        if not file.is_file():
+            print(f'{col.RED}`{file}` is not a file{col.RESET}')
             return
         
     # Try to overwrite all given files
