@@ -48,8 +48,10 @@ def main():
             error = 'I' + e.__str__().removeprefix('argument command: i')
             print(f'{col.RED}{error}{col.RESET}')
         
-        except:
-            print(f'{col.RED}Err: the vault may be corrupt{col.RESET}')
+        except Exception as e:
+            #? has the vault been altered?
+            print(f'{col.RED}Err: the vault may have been altered{col.RESET}')
+            print(f'{col.RED}{e} {col.RESET}')
             sys.exit(1)
 
     sys.exit(0)
