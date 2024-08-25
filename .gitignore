@@ -1,4 +1,5 @@
 # Venv
+.venv/
 Include
 Scripts
 pyvenv.cfg
