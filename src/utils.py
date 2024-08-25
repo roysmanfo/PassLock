@@ -1,6 +1,8 @@
 import base64
 import json
 
+from pathlib import Path
+import shlex
 from typing import Optional
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
@@ -46,4 +48,24 @@ def compute_key(passw: str, iterations: int = 100_000, key_length: int = 32) -> 
 
     return base64.urlsafe_b64encode(kdf.derive(passw))
     
+
+def path_escape(_files: str) -> list[Path]:
+    """
+    parse paths, by adding quotes top get the full path and
+    returning a list of Path objects
+
+    may trow an exception (from either pathlib or shlex)
+    """
+
+    _files: list[str] = shlex.split(shlex.quote(_files))
+
+    files = []
+    for file in _files:
+        if file.startswith("\"") or file.startswith("'"):
+            # this path has been quoted, remove quotes
+            file = file[1:-1]
+        files.append(Path(file))
+
+    return files
+
 
