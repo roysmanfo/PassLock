@@ -358,44 +358,20 @@ def run_command(args: ArgumentParser):
 
     envars.args = args
 
-    if args.command == 'exit':
-        sys.exit(0)
-
-    elif args.command in ['list', 'ls']:
-        cmd_list()
-
-    elif args.command == 'get':
-        cmd_get()
-    
-    elif args.command == 'set':
-        cmd_set()
-
-    elif args.command in ['del', 'rm']:
-        cmd_del()
-
-    elif args.command == 'add':
-        cmd_add()
-
-    elif args.command in ['rename', 'rnm']:
-        cmd_rnm()
-
-    elif args.command == 'chpass':
-        cmd_chpass()
-
-    elif args.command == 'sethint':
-        cmd_sethint()
-    
-    elif args.command == 'fenc':
-        cmd_fenc()
-
-    elif args.command == 'fdec':
-        cmd_fdec()
-
-    elif args.command == 'clear':
-        os.system("cls" if os.name == 'nt' else "clear")
-
-    elif args.command in ['-h', '--help','help']:
-        print('''usage: command [options] ...
+    match args.command:
+        case 'exit':            sys.exit(0)
+        case 'list' | 'ls':     cmd_list()
+        case 'get':             cmd_get()
+        case 'set':             cmd_set()
+        case 'del' | 'rm':      cmd_del()
+        case 'add':             cmd_add()
+        case 'rename' | 'rnm':  cmd_rnm()
+        case 'chpass':          cmd_chpass()
+        case 'sethint':         cmd_sethint()
+        case 'fenc':            cmd_fenc()
+        case 'fdec':            cmd_fdec()
+        case 'clear':           os.system("cls" if os.name == 'nt' else "clear")
+        case '-h'|'--help'|'help': print('''usage: command [options] ...
 
 Store your passwords localy in a secure way
 
