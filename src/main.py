@@ -7,7 +7,7 @@ import command
 from colors import col
 from parser import get_parser
 
-VAULT_PATH = os.path.join(os.path.dirname(__file__), "data", "vault.json")
+VAULT_PATH = os.path.join(os.path.expanduser("~"), ".passlock", "vault.json")
 
 def main():
     """
