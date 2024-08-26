@@ -1,7 +1,16 @@
 import sys as _sys
 import argparse
+from collections.abc import Sequence
 
 class Parser(argparse.ArgumentParser):
+
+    def parse_args(self, args: Sequence[str] | None = None, namespace: None = None ) -> argparse.Namespace:
+        try: 
+            return super().parse_args(args, namespace)
+        except:
+            if "-h" not in args and "--help" not in args:
+                raise
+                
     def error(self, message):
         if message:
             self._print_message(message, _sys.stderr)
