@@ -302,15 +302,32 @@ def cmd_fenc():
         
     # Try to overwrite all given files
     for file in files:
+        _original = None 
         try:
             with open(file, 'rb') as f:
-                if f.readable():
-                    content = f.read()
-                    with open(file, 'wb') as f:
-                        content = envars.fernet.encrypt(content)
-                        f.write(content)
-                else:
+                if not f.readable():
                     print(f'{col.RED}`{file}` is not readable{col.RESET}')
+                    continue
+                content = f.read()
+
+            if envars.args.save:
+                # save an encrypted copy of the original file in the vault
+                _original = file
+                file = os.path.join(envars.user.vault_storage, file.name)
+
+            with open(file, 'wb') as f:
+                content = envars.fernet.encrypt(content)
+                f.write(content)
+
+            if envars.args.save:
+                print(f"[{col.GREEN}+{col.RESET}] added `{_original}`{col.RESET}")
+                if envars.args.remove:
+                    try:
+                        os.remove(_original)
+                    except FileNotFoundError:
+                        print(f'{col.RED}unable to remove `{file}` (file not found) {col.RESET}')
+                    except PermissionError:
+                        print(f'{col.RED}unable to remove `{file}` (permission error) {col.RESET}')                    
 
         except PermissionError:
             print(f'{col.RED}Do not have permissions to overwrite file `{file}`{col.RESET}')

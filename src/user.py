@@ -10,7 +10,11 @@ class User(object):
     def __init__(self, vault_path: str):
         self.vault_path = vault_path
         self.key = ""
-        
+
+        # where to store all file 
+        self.vault_storage = os.path.join(os.path.dirname(vault_path), "secure_storage")
+        os.makedirs(self.vault_storage, exist_ok=True)
+
         # the hash of the password
         self.password_manager = self.get_PM()
 
