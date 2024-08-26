@@ -1,6 +1,7 @@
 import base64
 import json
 
+import os
 from pathlib import Path
 import shlex
 from typing import Optional
@@ -57,7 +58,7 @@ def path_escape(_files: str) -> list[Path]:
     may trow an exception (from either pathlib or shlex)
     """
 
-    _files: list[str] = shlex.split(shlex.quote(_files))
+    _files: list[str] = shlex.split(_files.strip(), posix=os.name=='posix')
 
     files = []
     for file in _files:
