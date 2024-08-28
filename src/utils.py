@@ -69,4 +69,22 @@ def path_escape(_files: str) -> list[Path]:
 
     return files
 
+def format_file_size(size_in_bytes: int) -> str:
+    """
+    format a file size to use the most appropiate unit (B, kB, MB, GB, ...)
+    """
+
+    units = ['B', 'kB', 'MB', 'GB', 'TB', 'PB'] # <- actually [kiB, MiB, ...]
+    for unit in units:
+        if size_in_bytes < 1024.0:
+            return f"{round(size_in_bytes, 2)} {unit}"
+        size_in_bytes /= 1024.0
+    
+    # In case the file size is extremely large (greater than PB)
+    # if execution reaches here, WHAT ARE YOU EVEN DEALING WITH MAN ?!
+    return f"{size_in_bytes:.2f} {units[-1]}"
+
+
+
+
 

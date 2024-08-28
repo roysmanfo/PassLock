@@ -41,9 +41,11 @@ def get_parser() -> Parser:
 
     list_parser = subparser.add_parser('list', help='List all app names', exit_on_error=False)
     list_parser.add_argument('-s', '--sort', action='store_true', help='Sorts the names based on the number of fields')
+    list_parser.add_argument('-f', '--files', action='store_true', help='list the files stored in the secure_storage')
 
     ls_parser = subparser.add_parser('ls', help='List all app names', exit_on_error=False)
     ls_parser.add_argument('-s', '--sort', action='store_true', help='Sorts the names based on the number of fields')
+    ls_parser.add_argument('-f', '--files', action='store_true', help='list the files stored in the secure_storage')
 
     set_parser = subparser.add_parser('set', help='Add/Update the credentials for the specified app (i.e set github.password password )', exit_on_error=False)
     set_parser.add_argument('field', help='field to modify (syntax: app_name.field_name)')

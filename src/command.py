@@ -1,4 +1,5 @@
 import hashlib
+from pathlib import Path
 import sys, os, json
 from cryptography.fernet import Fernet
 from argparse import ArgumentParser
@@ -26,7 +27,24 @@ envars = EnVars()
 
 
 def cmd_list():
-    with open(envars.user.vault_path, 'r') as f:
+    if envars.args.files:
+        files = os.listdir(envars.user.vault_storage)
+
+        if len(files) == 0:
+            print(f'{col.YELLOW}No files found in secure storage{col.RESET}')
+            return
+        
+        total_size = 0
+        for i, file in enumerate(files, start=1):
+            f_size = os.stat(os.path.join(envars.user.vault_storage, file)).st_size
+            total_size += f_size
+            size = utils.format_file_size(f_size)
+            
+            print("{:<4} {:<10} {}".format(f"{col.CYAN}{i}{col.RESET}.", size, file))
+
+        print(f"\n{len(files)} file" + ("s" if len(files) > 1 else "") , "| total size:",  utils.format_file_size(total_size))
+    else:
+        with open(envars.user.vault_path, 'r') as f:
             apps: dict = json.load(f)['Apps']
             
             if len(apps) == 0:
@@ -320,15 +338,20 @@ def cmd_fenc():
                 f.write(content)
 
             if envars.args.save:
-                print(f"[{col.GREEN}+{col.RESET}] added `{_original}`{col.RESET}")
+                print(f"[{col.GREEN}+{col.RESET}] added `{_original}` to secure storage{col.RESET}")
                 if envars.args.remove:
-                    try:
-                        os.remove(_original)
-                    except FileNotFoundError:
-                        print(f'{col.RED}unable to remove `{file}` (file not found) {col.RESET}')
-                    except PermissionError:
-                        print(f'{col.RED}unable to remove `{file}` (permission error) {col.RESET}')                    
 
+                    if _original.samefile(file):
+                        print(f'{col.RED}unable to remove the original file (same file error){col.RESET}')                    
+                    else:
+                        try:
+                            os.remove(_original)
+                        except FileNotFoundError:
+                            print(f'{col.RED}unable to remove `{file}` (file not found) {col.RESET}')
+                        except PermissionError:
+                            print(f'{col.RED}unable to remove `{file}` (permission error) {col.RESET}')                    
+                        else:
+                            print(f'{col.RED}removed{col.RESET} original file')                    
         except PermissionError:
             print(f'{col.RED}Do not have permissions to overwrite file `{file}`{col.RESET}')
 
