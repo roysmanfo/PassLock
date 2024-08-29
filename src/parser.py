@@ -82,6 +82,7 @@ def get_parser() -> Parser:
     fdec_parser = subparser.add_parser('fdec', help='File Encrypt: excrypt 1 or more text file (i.e. fenc file1.txt path/to/file2.txt)', exit_on_error=False)
     fdec_parser.add_argument('files', nargs='+', help='space separated file paths')
     fdec_parser.add_argument('-s', "--secure-storage", action="store_true", help='this file comes from the secure storage (by default saves the decrypted vestion in the current directory)')
-    fdec_parser.add_argument('-o', dest="output", help='the directory where to save the decrypted version of the file (dafault: same of the file )')
+    fdec_parser.add_argument('-rm', "--remove", action="store_true", help='once the files have been decrypted in the vault delete the original')
+    fdec_parser.add_argument('-o', dest="output", metavar="outdir", help='the directory where to save the decrypted version of the file (dafault: same of the file )')
 
     return parser

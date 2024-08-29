@@ -1,7 +1,7 @@
 import hashlib
 from pathlib import Path
 import sys, os, json
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken
 from argparse import ArgumentParser
 
 import login
@@ -356,6 +356,21 @@ def cmd_fenc():
             print(f'{col.RED}Do not have permissions to overwrite file `{file}`{col.RESET}')
 
 def cmd_fdec():
+    out_dir: Path = None
+
+    if envars.args.output:
+        out_dir = utils.path_escape(envars.args.output)[0].resolve()
+
+        if out_dir.exists() and out_dir.is_reserved():
+            print(f'{col.RED}unable to access `{file}` (permission error){col.RESET}')
+            return
+        
+        if not out_dir.is_dir():
+            print(f'{col.RED}`{file}` is not a directory{col.RESET}')
+            return
+
+        out_dir.mkdir(parents=True, exist_ok=True)
+
     try:
         files = utils.path_escape(" ".join(envars.args.files))
     except Exception as e:
@@ -365,6 +380,10 @@ def cmd_fdec():
     # Check for errors in the input
     # don't do anything if there are errors
     for file in files:
+
+        if envars.args.secure_storage:
+            # this file is in the secure storage
+            file = Path(os.path.join(envars.user.vault_storage, file))
         if not file.exists():
             print(f'{col.RED}File `{file}` does not exist{col.RESET}')
             return
@@ -373,20 +392,42 @@ def cmd_fdec():
             print(f'{col.RED}`{file}` is not a file{col.RESET}')
             return
         
-    # Try to overwrite all given files
+    # Try to decrypt all given files
     for file in files:
+        if envars.args.secure_storage:
+            # this file is in the secure storage
+            file = Path(os.path.join(envars.user.vault_storage, file))
         try:
             with open(file, 'rb') as f:
                 if f.readable():
                     content = f.read()
-                    with open(file, 'wb') as f:
-                        content = envars.fernet.decrypt(content)
-                        f.write(content)
                 else:
                     print(f'{col.RED}`{file}` is not readable{col.RESET}')
+                    return
+            
+            out_file = file
+            if out_dir:
+                out_file = out_dir.joinpath(os.path.basename(file))
+
+            with open(out_file, 'wb') as f:
+                content = envars.fernet.decrypt(content)
+                f.write(content)
+        
+            if envars.args.remove and str(out_file) != str(file):
+                try:
+                    os.remove(file)
+                except FileNotFoundError:
+                    print(f'{col.RED}unable to remove `{file}` (file not found) {col.RESET}')
+                except PermissionError:
+                    print(f'{col.RED}unable to remove `{file}` (permission error) {col.RESET}')                    
+                else:
+                    print(f'{col.RED}removed{col.RESET} original file')  
 
         except PermissionError:
             print(f'{col.RED}Do not have permissions to overwrite file `{file}`{col.RESET}')
+        
+        except InvalidToken:
+            print(f'{col.RED}unable to decrypt the file `{file}` (may have been altered){col.RESET}')
 
 def run_command(args: ArgumentParser):
     """
