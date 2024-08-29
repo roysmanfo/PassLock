@@ -223,53 +223,56 @@ def cmd_rnm():
 
     with open(envars.user.vault_path, 'r') as f:
         apps: dict = json.load(f)['Apps']
-        keys = [envars.fernet.decrypt(i).decode() for i in apps.keys()]
-        mapped_keys = {}
-        for enc_key in apps.keys():
-            dict.update(mapped_keys, {envars.fernet.decrypt(enc_key).decode(): enc_key})
-        
-        # Check the app name
-        if len(original_key.split('.')) == 1:
-            if original_key not in keys:
-                print(f'{col.RED}App not found{col.RESET}')
-                return
-        elif len(original_key.split('.')) == 2:
-            if original_key.split('.')[0] not in keys:
-                print(f'{col.RED}App not found{col.RESET}')
-                return
-        else:
-            print(f'{col.RED}Syntax error{col.RESET}')
+    keys = [envars.fernet.decrypt(i).decode() for i in apps.keys()]
+    mapped_keys = {}
+    for enc_key in apps.keys():
+        dict.update(mapped_keys, {envars.fernet.decrypt(enc_key).decode(): enc_key})
+    
+    # Check the app name
+    if len(original_key.split('.')) == 1:
+        if original_key not in keys:
+            print(f'{col.RED}App not found{col.RESET}')
             return
-        
-        # Check if we want to rename an app or a field
-        if len(original_key.split('.')) == 1 and new_key in keys:
-            print(f"{col.RED}There is already an app with name {new_key.capitalize()}{col.RESET}")
+    elif len(original_key.split('.')) == 2:
+        if original_key.split('.')[0] not in keys:
+            print(f'{col.RED}App not found{col.RESET}')
             return
-        elif new_key in [envars.fernet.decrypt(i).decode() for i in apps]:
-            print(f"{col.RED}There is already a field with name {new_key.capitalize()}{col.RESET}")
-            return
-        
-        # Create a new dictionary/field with the updated name and delete the old one
-        if len(original_key.split('.')) == 1:
-            sub_dict = apps[mapped_keys[original_key]]
-            apps[envars.fernet.encrypt(new_key.encode()).decode()] = sub_dict
-            del apps[mapped_keys[original_key]]
-        else:
-            appname, fieldname = [i.capitalize() for i in original_key.split('.')]
-            mapped_fields = {}
-            for enc_key in apps[mapped_keys[appname]].keys():
-                dict.update(mapped_fields, {envars.fernet.decrypt(enc_key).decode(): enc_key})
-            old_field = mapped_fields[fieldname] # get the old value of the field
-            field_val = apps[mapped_keys[appname]][old_field]
-            apps[mapped_keys[appname]][envars.fernet.encrypt(new_key.encode()).decode()] = field_val
-            del apps[mapped_keys[appname]][mapped_fields[fieldname]]
+    else:
+        print(f'{col.RED}Syntax error{col.RESET}')
+        return
+    
+    # Check if we want to rename an app or a field
+    if len(original_key.split('.')) == 1 and new_key in keys:
+        print(f"{col.RED}There is already an app with name {new_key.capitalize()}{col.RESET}")
+        return
+    elif new_key in [envars.fernet.decrypt(i).decode() for i in apps]:
+        print(f"{col.RED}There is already a field with name {new_key.capitalize()}{col.RESET}")
+        return
+    
+    # Create a new dictionary/field with the updated name and delete the old one
+    if len(original_key.split('.')) == 1:
+        sub_dict = apps[mapped_keys[original_key]]
+        apps[envars.fernet.encrypt(new_key.encode()).decode()] = sub_dict
+        del apps[mapped_keys[original_key]]
+    else:
+        # well you find this hard to read, but it was harder to write,
+        # AND I HAD TO DO BOTH 
+        appname, fieldname = [i.capitalize() for i in original_key.split('.')]
+        mapped_fields = {}
+        for enc_key in apps[mapped_keys[appname]].keys():
+            dict.update(mapped_fields, {envars.fernet.decrypt(enc_key).decode(): enc_key})
+        old_field = mapped_fields[fieldname] # get the old value of the field
+        field_val = apps[mapped_keys[appname]][old_field]
+        apps[mapped_keys[appname]][envars.fernet.encrypt(new_key.encode()).decode()] = field_val
+        del apps[mapped_keys[appname]][mapped_fields[fieldname]]
 
-        update_vault(envars.user, apps=apps)
-        print(f"{col.GREEN}Renamed '{original_key}' to '{new_key}'{col.RESET}")
+    update_vault(envars.user, apps=apps)
+    print(f"{col.GREEN}Renamed '{original_key}' to '{new_key}'{col.RESET}")
 
 def cmd_chpass():
     new_key, password = login.generate_key(envars.user, from_user=True)
     pm_hash = hashlib.sha512(password.encode()).hexdigest()
+    old_fernet = envars.fernet
 
     with open(envars.user.vault_path, 'r') as f:
         apps: dict = json.load(f)['Apps']
@@ -286,6 +289,17 @@ def cmd_chpass():
             dict.update(apps, {envars.fernet.encrypt(app[0].encode()).decode(): fields})
 
         update_vault(envars.user, pm_hash, apps=apps)
+        print(f"{col.GREEN}vault updated{col.GREEN}")
+        print(f"updating files in the secure vault (this process may take some time based on the size of the vault)")
+        
+        # dont forget the files stored in the secure vault
+        for file in os.listdir(envars.user.vault_storage):
+            with open(file, "+b") as f:
+                data = old_fernet.decrypt(f.read())
+                f.write(envars.fernet.encrypt(data))
+
+        print(f"{col.GREEN}secure storage updated{col.GREEN}")
+
 
 def cmd_sethint():
     hint = " ".join(envars.args.hint)
