@@ -40,7 +40,7 @@ def cmd_list():
             total_size += f_size
             size = utils.format_file_size(f_size)
             
-            print("{:<4} {:<10} {}".format(f"{col.CYAN}{i}{col.RESET}.", size, file))
+            print("{}{}{} {} {}".format(col.CYAN, f'{i}.'.ljust(4), col.RESET, size.ljust(10), file))
 
         print(f"\n{len(files)} file" + ("s" if len(files) > 1 else "") , "| total size:",  utils.format_file_size(total_size))
     else:
