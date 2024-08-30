@@ -22,11 +22,19 @@ jobs:
       with:
         python-version: '3.x'
 
-    - name: Extract version
-      id: get_version
+    - name: Extract version on Linux
+      if: matrix.os == 'ubuntu-latest'
+      id: get_version_linux
       run: |
         version=$(grep 'version=' src/.conf | cut -d '=' -f 2)
         echo "VERSION=$version" >> $GITHUB_ENV
+
+    - name: Extract version on Windows
+      if: matrix.os == 'windows-latest'
+      id: get_version_windows
+      run: |
+        $version = Get-Content src/.conf | Select-String -Pattern 'version=' | ForEach-Object { $_ -replace '.*version=', '' }
+        echo "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
     - name: Install dependencies
       run: |
@@ -36,13 +44,13 @@ jobs:
     - name: Build application on Linux
       if: matrix.os == 'ubuntu-latest'
       run: |
-        python3 -m nuitka src/main.py --standalone --include-data-file=src/.conf=./.conf --product-name=PassLock --product-version=$VERSION
+        python3 -m nuitka src/main.py --standalone --static-libpython=yes --include-data-file=src/.conf=./.conf --product-name=PassLock --product-version=$VERSION
       shell: bash
 
     - name: Build application on Windows
       if: matrix.os == 'windows-latest'
       run: |
-        py -m nuitka src/main.py --standalone --include-data-file=src/.conf=./.conf --windows-icon-from-ico=img/Logo.ico --product-name=PassLock --product-version=$VERSION
+        py -m nuitka src/main.py --standalone --static-libpython=yes --include-data-file=src/.conf=./.conf --windows-icon-from-ico=img/Logo.ico --product-name=PassLock --product-version=$VERSION
 
     - name: Package Linux build (tar.gz)
       if: matrix.os == 'ubuntu-latest'
