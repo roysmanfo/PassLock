@@ -100,13 +100,13 @@ jobs:
 
       - name: Download Linux Artifacts
         if: steps.get_version_linux.outputs.VERSION != ''
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: Linux Build
 
       - name: Download Windows Artifacts
         if: steps.get_version_windows.outputs.VERSION != ''
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: Windows Build
 
