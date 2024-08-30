@@ -124,7 +124,7 @@ jobs:
 
       - name: Extract Version
         run: |
-          unzip version.zip
+          unzip version
           echo "VERSION=$(cat version)" >> $GITHUB_ENV
 
       - name: Create Release
