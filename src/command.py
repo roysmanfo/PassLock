@@ -444,6 +444,27 @@ def cmd_fdec():
         except InvalidToken:
             print(f'{col.RED}unable to decrypt the file `{file}` (may have been altered){col.RESET}')
 
+def cmd_version():
+    cur_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), ".conf")
+    try:
+        with open(cur_dir, "rt") as conf:
+            while not (line := conf.readline()).strip().startswith("version="):
+                pass
+
+            if not line or not line.startswith("version="):
+                print(f"{col.RED}config file altered (unable to determine the version){col.RESET}")
+                return
+
+            version = line.split("=")[1] # the version should contain no whitespaces
+            print(version)
+    except FileNotFoundError:
+        print(f"{col.RED}unable to find configuration file{col.RESET}")
+
+    except OSError as e:
+        # - unable to read 
+        # - permission denied
+        print(f"{col.RED}{e}{col.RESET}")
+
 def run_command(args: ArgumentParser):
     """
     Acts like a swich statement by triggering the right command
@@ -464,6 +485,7 @@ def run_command(args: ArgumentParser):
         case 'sethint':         cmd_sethint()
         case 'fenc':            cmd_fenc()
         case 'fdec':            cmd_fdec()
+        case 'version':         cmd_version()
         case 'clear':           os.system("cls" if os.name == 'nt' else "clear")
         case '-h'|'--help'|'help': print('''usage: command [options] ...
 
@@ -486,6 +508,7 @@ commands:
     add                 Add the new app/apps to the vault (i.e add github bitcoin work)
     rename              Rename a key or a field (i.e `rename work.code passkey` or `rename work job`)
     rnm                 Rename a key or a field (i.e `rnm work.code passkey` or `rnm work job`)
+    version             Get the current version
 ''')
         
         

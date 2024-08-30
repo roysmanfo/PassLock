@@ -38,6 +38,7 @@ def get_parser() -> Parser:
     subparser.add_parser('clear', description='Clear the screen', exit_on_error=False)
     subparser.add_parser('help' , description='Display this help message', exit_on_error=False)
     subparser.add_parser('chpass' , description='Change the password manager', exit_on_error=False)
+    subparser.add_parser('version' , description='Get the current version', exit_on_error=False)
 
     list_parser = subparser.add_parser('list', description='List all app names', exit_on_error=False)
     list_parser.add_argument('-s', '--sort', action='store_true', help='Sorts the names based on the number of fields')
