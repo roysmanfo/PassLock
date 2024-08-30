@@ -20,12 +20,12 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
-          architecture: 'x64'
-          cache: 'pip'
+          python-version: "3.12"
+          architecture: "x64"
+          cache: "pip"
           cache-dependency-path: |
             **/requirements*.txt
-      
+
       - name: Extract version (Linux)
         id: get_version_linux
         if: runner.os == 'Linux'
@@ -57,7 +57,7 @@ jobs:
           include-data-files: src/.conf=./.conf
           product-name: PassLock
           product-version: ${{ env.VERSION }}
-          onefile: false  # Set this to true if you want single file executables, but this isn't used here
+          onefile: false
 
       - name: Package Executable (Linux)
         if: runner.os == 'Linux'
