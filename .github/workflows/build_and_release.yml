@@ -44,7 +44,8 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          pip install -r requirements.txt
+          if [ -f requirements.txt ]; then pip install -r requirements.txt;fi
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt;fi
 
       - name: Build Executable
         uses: Nuitka/Nuitka-Action@main
