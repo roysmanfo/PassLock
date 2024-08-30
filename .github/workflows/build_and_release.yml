@@ -42,6 +42,14 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install nuitka
+    
+    - name: Install Dependency Walker on Windows
+      if: matrix.os == 'windows-latest'
+      run: |
+        Invoke-WebRequest -Uri "https://dependencywalker.com/depends22_x64.zip" -OutFile "depends22_x64.zip"
+        Expand-Archive depends22_x64.zip -DestinationPath "C:\DependencyWalker"
+        echo "PATH=C:\DependencyWalker;%PATH%" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      shell: powershell
 
     - name: Build application on Linux
       if: matrix.os == 'ubuntu-latest'
@@ -52,7 +60,7 @@ jobs:
     - name: Build application on Windows
       if: matrix.os == 'windows-latest'
       run: |
-        py -m nuitka src/main.py --standalone --windows-icon-from-ico=img/Logo.ico --include-data-file=src/.conf=./.conf --product-version=$VERSION --disable-console --plugin-enable=pyside2 --disable-dll-dependency-cache
+        py -m nuitka src/main.py --standalone --windows-icon-from-ico=img/Logo.ico --include-data-file=src/.conf=./.conf --product-version=$VERSION --windows-console-mode=disable
       shell: powershell
 
     - name: Package Linux build (tar.gz)
