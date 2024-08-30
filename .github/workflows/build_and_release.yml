@@ -50,7 +50,7 @@ jobs:
         uses: Nuitka/Nuitka-Action@main
         with:
           script-name: src/main.py
-          nuitka-version: stable
+          nuitka-version: main
           standalone: true
           output-dir: build/
           windows-icon-from-ico: img/Logo.ico
