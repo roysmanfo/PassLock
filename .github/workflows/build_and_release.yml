@@ -76,7 +76,7 @@ jobs:
 
       - name: Upload Artifacts (Linux)
         if: runner.os == 'Linux'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Linux Build
           path: |
@@ -85,7 +85,7 @@ jobs:
 
       - name: Upload Artifacts (Windows)
         if: runner.os == 'Windows'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Windows Build
           path: |
@@ -113,6 +113,8 @@ jobs:
       - name: Create Release
         id: create_release
         uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: v${{ needs.build.outputs.version }}
           release_name: PassLock ${{ needs.build.outputs.version }}
@@ -122,6 +124,8 @@ jobs:
 
       - name: Upload Assets to Release
         uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: |
