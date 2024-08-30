@@ -294,8 +294,9 @@ def cmd_chpass():
         
         # dont forget the files stored in the secure vault
         for file in os.listdir(envars.user.vault_storage):
-            with open(file, "+b") as f:
+            with open(file, "rb") as f:
                 data = old_fernet.decrypt(f.read())
+            with open(file, "wb") as f:
                 f.write(envars.fernet.encrypt(data))
 
         print(f"{col.GREEN}secure storage updated{col.GREEN}")
