@@ -56,19 +56,19 @@ jobs:
     - name: Package Linux build (tar.gz)
       if: matrix.os == 'ubuntu-latest'
       run: |
-        tar -czvf passlock-$VERSION.tar.gz -C ./src/main.dist/ .
+        tar -czvf passlock-$VERSION.tar.gz -C ./main.dist/ .
       shell: bash
 
     - name: Package Linux build (tar.xz)
       if: matrix.os == 'ubuntu-latest'
       run: |
-        tar -cJvf passlock-$VERSION.tar.xz -C ./src/main.dist/ .
+        tar -cJvf passlock-$VERSION.tar.xz -C ./main.dist/ .
       shell: bash
 
     - name: Package Windows build (zip)
       if: matrix.os == 'windows-latest'
       run: |
-        powershell Compress-Archive -Path ./src/main.dist/* -DestinationPath passlock-$VERSION.zip
+        powershell Compress-Archive -Path ./main.dist/* -DestinationPath passlock-$VERSION.zip
 
     - name: Upload Linux tar.gz artifact
       if: matrix.os == 'ubuntu-latest'
