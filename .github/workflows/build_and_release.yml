@@ -25,18 +25,22 @@ jobs:
           cache: 'pip'
           cache-dependency-path: |
             **/requirements*.txt
-
-      - name: Extract version
-        id: get_version
+      
+      - name: Extract version (Linux)
+        id: get_version_linux
+        if: runner.os == 'Linux'
         run: |
-          if [ $RUNNER_OS == "Windows" ]; then
-            $version = Get-Content src/.conf | Select-String -Pattern 'version=' | ForEach-Object { $_ -replace '.*version=', '' }
-            echo "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          else
-            version=$(grep 'version=' src/.conf | cut -d '=' -f 2)
-            echo "VERSION=$version" >> $GITHUB_ENV
-          fi
+          version=$(grep 'version=' src/.conf | cut -d '=' -f 2)
+          echo "VERSION=$version" >> $GITHUB_ENV
         shell: bash
+
+      - name: Extract version (Windows)
+        id: get_version_windows
+        if: runner.os == 'Windows'
+        run: |
+          $version = (Get-Content src/.conf | Select-String -Pattern 'version=').ToString().Split('=')[1].Trim()
+          echo "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        shell: powershell
 
       - name: Install Dependencies
         run: |
@@ -55,24 +59,35 @@ jobs:
           product-version: ${{ env.VERSION }}
           onefile: false  # Set this to true if you want single file executables, but this isn't used here
 
-      - name: Package Executable
+      - name: Package Executable (Linux)
+        if: runner.os == 'Linux'
         run: |
-          if [ $RUNNER_OS == "Linux" ]; then
-            tar -czvf passlock-${{ env.VERSION }}.tar.gz -C build/ .
-            tar -cJvf passlock-${{ env.VERSION }}.tar.xz -C build/ .
-          elif [ $RUNNER_OS == "Windows" ]; then
-            Compress-Archive -Path build/* -DestinationPath passlock-${{ env.VERSION }}.zip
-          fi
+          tar -czvf passlock-${{ env.VERSION }}.tar.gz -C build/ .
+          tar -cJvf passlock-${{ env.VERSION }}.tar.xz -C build/ .
         shell: bash
 
-      - name: Upload Artifacts
+      - name: Package Executable (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          Compress-Archive -Path build/* -DestinationPath passlock-${{ env.VERSION }}.zip
+        shell: powershell
+
+      - name: Upload Artifacts (Linux)
+        if: runner.os == 'Linux'
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ runner.os }} Build
+          name: Linux Build
           path: |
-            passlock-${{ env.VERSION }}*.tar.gz
-            passlock-${{ env.VERSION }}*.tar.xz
-            passlock-${{ env.VERSION }}*.zip
+            passlock-${{ env.VERSION }}.tar.gz
+            passlock-${{ env.VERSION }}.tar.xz
+
+      - name: Upload Artifacts (Windows)
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v3
+        with:
+          name: Windows Build
+          path: |
+            passlock-${{ env.VERSION }}.zip
 
   release:
     name: Create GitHub Release
@@ -83,10 +98,17 @@ jobs:
       - name: Check-out repository
         uses: actions/checkout@v4
 
-      - name: Download Artifacts
+      - name: Download Linux Artifacts
+        if: steps.get_version_linux.outputs.VERSION != ''
         uses: actions/download-artifact@v3
         with:
-          name: ${{ runner.os }} Build
+          name: Linux Build
+
+      - name: Download Windows Artifacts
+        if: steps.get_version_windows.outputs.VERSION != ''
+        uses: actions/download-artifact@v3
+        with:
+          name: Windows Build
 
       - name: Generate Release Notes
         id: generate_release_notes
@@ -109,6 +131,9 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: passlock-${{ env.VERSION }}*.*
+          asset_path: |
+            passlock-${{ env.VERSION }}*.tar.gz
+            passlock-${{ env.VERSION }}*.tar.xz
+            passlock-${{ env.VERSION }}*.zip
           asset_name: passlock-${{ env.VERSION }}.*
           asset_content_type: application/octet-stream
