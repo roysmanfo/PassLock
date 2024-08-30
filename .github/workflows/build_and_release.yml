@@ -74,22 +74,39 @@ jobs:
           Compress-Archive -Path build/* -DestinationPath passlock-${{ env.VERSION }}.zip
         shell: powershell
 
-      - name: Upload Artifacts (Linux)
+      - name: Upload Artifacts (Linux gzip)
         if: runner.os == 'Linux'
         uses: actions/upload-artifact@v4
         with:
-          name: Linux Build
+          name: passlock-${{ env.VERSION }}.tar.gz
           path: |
             passlock-${{ env.VERSION }}.tar.gz
-            passlock-${{ env.VERSION }}.tar.xz
 
-      - name: Upload Artifacts (Windows)
+      - name: Upload Artifacts (Linux lzma)
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: passlock-${{ env.VERSION }}.tar.xz
+          path: |
+            passlock-${{ env.VERSION }}.tar.xz
+      
+      - name: Upload Artifacts (Windows zip)
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
-          name: Windows Build
+          name: passlock-${{ env.VERSION }}.zip
           path: |
             passlock-${{ env.VERSION }}.zip
+      
+      - name: Create Version Artifact
+        run: echo ${{ env.VERSION }} > version
+
+      - name: Upload Artifacts (Windows zip)
+        uses: actions/upload-artifact@v4
+        with:
+          name: version
+          path: |
+            version
 
   release:
     name: Create GitHub Release
@@ -103,6 +120,9 @@ jobs:
 
       - name: Download Artifacts
         uses: actions/download-artifact@v4
+
+      - name: Extract Version
+        run: echo "VERSION=$(cat version)" >> $GITHUB_ENV
 
       - name: Create Release
         id: create_release
