@@ -28,18 +28,19 @@ jobs:
       run: |
         version=$(grep 'version=' src/.conf | cut -d '=' -f 2)
         echo "VERSION=$version" >> $GITHUB_ENV
+        echo "Extracted version: $version"
 
     - name: Extract version on Windows
       if: matrix.os == 'windows-latest'
-      id: get_version_windows
+      id: get_version_win
       run: |
         $version = Get-Content src/.conf | Select-String -Pattern 'version=' | ForEach-Object { $_ -replace '.*version=', '' }
         echo "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        echo "Extracted version: $version"
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
         pip install nuitka
 
     - name: Build application on Linux
@@ -51,7 +52,8 @@ jobs:
     - name: Build application on Windows
       if: matrix.os == 'windows-latest'
       run: |
-        python -m nuitka src/main.py --standalone --windows-icon-from-ico=img/Logo.ico --include-data-file=src/.conf=./.conf --product-version=$VERSION
+        py -m nuitka src/main.py --standalone --windows-icon-from-ico=img/Logo.ico --include-data-file=src/.conf=./.conf --product-version=$VERSION --disable-console --plugin-enable=pyside2 --disable-dll-dependency-cache
+      shell: powershell
 
     - name: Package Linux build (tar.gz)
       if: matrix.os == 'ubuntu-latest'
@@ -68,7 +70,8 @@ jobs:
     - name: Package Windows build (zip)
       if: matrix.os == 'windows-latest'
       run: |
-        powershell Compress-Archive -Path ./main.dist/* -DestinationPath passlock-$VERSION.zip
+        Compress-Archive -Path ./main.dist/* -DestinationPath passlock-$VERSION.zip
+      shell: powershell
 
     - name: Upload Linux tar.gz artifact
       if: matrix.os == 'ubuntu-latest'
@@ -101,30 +104,33 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Download Linux tar.gz artifact
+      if: always()
       uses: actions/download-artifact@v3
       with:
         name: passlock-${{ env.VERSION }}.tar.gz
         path: ./release/
 
     - name: Download Linux tar.xz artifact
+      if: always()
       uses: actions/download-artifact@v3
       with:
         name: passlock-${{ env.VERSION }}.tar.xz
         path: ./release/
 
     - name: Download Windows zip artifact
+      if: always()
       uses: actions/download-artifact@v3
       with:
         name: passlock-${{ env.VERSION }}.zip
         path: ./release/
-    
+
     - name: Generate Release Notes
       id: generate_release_notes
       run: |
-            echo "**What's changed in v${{ env.VERSION }}:**" > release_notes.md
-            echo "" >> release_notes.md
-            echo "- Summary of changes here..." >> release_notes.md
-            echo "- This could include PR titles, commit messages, etc." >> release_notes.md
+        echo "**What's changed in v${{ env.VERSION }}:**" > release_notes.md
+        echo "" >> release_notes.md
+        echo "- Summary of changes here..." >> release_notes.md
+        echo "- This could include PR titles, commit messages, etc." >> release_notes.md
 
     - name: Create Release
       id: create_release
@@ -137,6 +143,7 @@ jobs:
         prerelease: false
 
     - name: Upload Linux tar.gz to release
+      if: always()
       uses: actions/upload-release-asset@v1
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
@@ -145,6 +152,7 @@ jobs:
         asset_content_type: application/gzip
 
     - name: Upload Linux tar.xz to release
+      if: always()
       uses: actions/upload-release-asset@v1
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
@@ -153,6 +161,7 @@ jobs:
         asset_content_type: application/x-xz
 
     - name: Upload Windows zip to release
+      if: always()
       uses: actions/upload-release-asset@v1
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
