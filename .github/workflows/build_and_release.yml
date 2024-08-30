@@ -32,7 +32,7 @@ jobs:
         run: |
           version=$(grep 'version=' src/.conf | cut -d '=' -f 2)
           echo "VERSION=$version" >> $GITHUB_ENV
-          echo "::set-output name=version::$version"
+          echo "VERSION=$version" >> $GITHUB_OUTPUT
         shell: bash
 
       - name: Extract version (Windows)
@@ -41,7 +41,7 @@ jobs:
         run: |
           $version = (Get-Content src/.conf | Select-String -Pattern 'version=').ToString().Split('=')[1].Trim()
           echo "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          echo "::set-output name=version=$version"
+          echo "VERSION=$version" >> $GITHUB_OUTPUT
         shell: powershell
 
       - name: Install Dependencies
@@ -103,22 +103,18 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v4
 
-      - name: Generate Release Notes
-        id: generate_release_notes
-        run: |
-          echo "**What's changed in v${{ needs.build.outputs.version }}:**" > release_notes.md
-          echo "" >> release_notes.md
-          echo "- Summary of changes here..." >> release_notes.md
-
       - name: Create Release
         id: create_release
         uses: actions/create-release@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ needs.build.outputs.version }}
-          release_name: PassLock ${{ needs.build.outputs.version }}
-          body_path: ./release_notes.md
+          tag_name: v${{ env.VERSION }}
+          release_name: PassLock ${{ env.VERSION }}
+          body: |
+            "**What's changed in v${{ env.VERSION }}:**"
+            ""
+            "- Summary of changes here..."
           draft: false
           prerelease: false
 
@@ -129,8 +125,8 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: |
-            passlock-${{ needs.build.outputs.version }}*.tar.gz
-            passlock-${{ needs.build.outputs.version }}*.tar.xz
-            passlock-${{ needs.build.outputs.version }}*.zip
-          asset_name: passlock-${{ needs.build.outputs.version }}.*
+            passlock-${{ env.VERSION }}*.tar.gz
+            passlock-${{ env.VERSION }}*.tar.xz
+            passlock-${{ env.VERSION }}*.zip
+          asset_name: passlock-${{ env.VERSION }}.*
           asset_content_type: application/octet-stream
