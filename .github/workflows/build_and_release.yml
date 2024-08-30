@@ -60,7 +60,7 @@ jobs:
     - name: Build application on Windows
       if: matrix.os == 'windows-latest'
       run: |
-        python -m nuitka src/main.py --standalone --windows-icon-from-ico=img/Logo.ico --include-data-file=src/.conf=./.conf --product-version=$VERSION --windows-console-mode=disable
+        echo "Yes" | python -m nuitka src/main.py --standalone --windows-icon-from-ico=img/Logo.ico --include-data-file=src/.conf=./.conf --product-version=$VERSION --windows-console-mode=disable
       shell: powershell
 
     - name: Package Linux build (tar.gz)
