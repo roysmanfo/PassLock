@@ -7,100 +7,72 @@ on:
 
 jobs:
   build:
-    name: Build with Nuitka on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
 
+    runs-on: ${{ matrix.os }}
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Check-out repository
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          architecture: 'x64'
+          cache: 'pip'
+          cache-dependency-path: |
+            **/requirements*.txt
 
-    - name: Extract version on Linux
-      if: matrix.os == 'ubuntu-latest'
-      id: get_version_linux
-      run: |
-        version=$(grep 'version=' src/.conf | cut -d '=' -f 2)
-        echo "VERSION=$version" >> $GITHUB_ENV
-        echo "Extracted version: $version"
+      - name: Extract version
+        id: get_version
+        run: |
+          if [ $RUNNER_OS == "Windows" ]; then
+            $version = Get-Content src/.conf | Select-String -Pattern 'version=' | ForEach-Object { $_ -replace '.*version=', '' }
+            echo "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          else
+            version=$(grep 'version=' src/.conf | cut -d '=' -f 2)
+            echo "VERSION=$version" >> $GITHUB_ENV
+          fi
+        shell: bash
 
-    - name: Extract version on Windows
-      if: matrix.os == 'windows-latest'
-      id: get_version_win
-      run: |
-        $version = Get-Content src/.conf | Select-String -Pattern 'version=' | ForEach-Object { $_ -replace '.*version=', '' }
-        echo "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-        echo "Extracted version: $version"
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt -r requirements-dev.txt
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install nuitka
-    
-    - name: Install Dependency Walker on Windows
-      if: matrix.os == 'windows-latest'
-      run: |
-        Invoke-WebRequest -Uri "https://dependencywalker.com/depends22_x64.zip" -OutFile "depends22_x64.zip"
-        Expand-Archive depends22_x64.zip -DestinationPath "C:\DependencyWalker"
-        echo "PATH=C:\DependencyWalker;%PATH%" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-      shell: powershell
+      - name: Build Executable
+        uses: Nuitka/Nuitka-Action@main
+        with:
+          script-name: src/main.py
+          nuitka-version: stable
+          standalone: true
+          output-dir: build/
+          windows-icon-from-ico: img/Logo.ico
+          include-data-files: src/.conf=./.conf
+          product-name: PassLock
+          product-version: ${{ env.VERSION }}
+          onefile: false  # Set this to true if you want single file executables, but this isn't used here
 
-    - name: Build application on Linux
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        python3 -m nuitka src/main.py --standalone --static-libpython=yes --include-data-file=src/.conf=./.conf --product-version=$VERSION
-      shell: bash
+      - name: Package Executable
+        run: |
+          if [ $RUNNER_OS == "Linux" ]; then
+            tar -czvf passlock-${{ env.VERSION }}.tar.gz -C build/ .
+            tar -cJvf passlock-${{ env.VERSION }}.tar.xz -C build/ .
+          elif [ $RUNNER_OS == "Windows" ]; then
+            Compress-Archive -Path build/* -DestinationPath passlock-${{ env.VERSION }}.zip
+          fi
+        shell: bash
 
-    - name: Build application on Windows
-      if: matrix.os == 'windows-latest'
-      run: |
-        echo "Yes" | python -m nuitka src/main.py --standalone --windows-icon-from-ico=img/Logo.ico --include-data-file=src/.conf=./.conf --product-version=$VERSION --windows-console-mode=disable
-      shell: powershell
-
-    - name: Package Linux build (tar.gz)
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        tar -czvf passlock-$VERSION.tar.gz -C ./main.dist/ .
-      shell: bash
-
-    - name: Package Linux build (tar.xz)
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        tar -cJvf passlock-$VERSION.tar.xz -C ./main.dist/ .
-      shell: bash
-
-    - name: Package Windows build (zip)
-      if: matrix.os == 'windows-latest'
-      run: |
-        Compress-Archive -Path ./main.dist/* -DestinationPath passlock-$VERSION.zip
-      shell: powershell
-
-    - name: Upload Linux tar.gz artifact
-      if: matrix.os == 'ubuntu-latest'
-      uses: actions/upload-artifact@v3
-      with:
-        name: passlock-$VERSION.tar.gz
-        path: passlock-$VERSION.tar.gz
-
-    - name: Upload Linux tar.xz artifact
-      if: matrix.os == 'ubuntu-latest'
-      uses: actions/upload-artifact@v3
-      with:
-        name: passlock-$VERSION.tar.xz
-        path: passlock-$VERSION.tar.xz
-
-    - name: Upload Windows zip artifact
-      if: matrix.os == 'windows-latest'
-      uses: actions/upload-artifact@v3
-      with:
-        name: passlock-$VERSION.zip
-        path: passlock-$VERSION.zip
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ runner.os }} Build
+          path: |
+            passlock-${{ env.VERSION }}*.tar.gz
+            passlock-${{ env.VERSION }}*.tar.xz
+            passlock-${{ env.VERSION }}*.zip
 
   release:
     name: Create GitHub Release
@@ -108,71 +80,35 @@ jobs:
     needs: build
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Check-out repository
+        uses: actions/checkout@v4
 
-    - name: Download Linux tar.gz artifact
-      if: always()
-      uses: actions/download-artifact@v3
-      with:
-        name: passlock-${{ env.VERSION }}.tar.gz
-        path: ./release/
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ runner.os }} Build
 
-    - name: Download Linux tar.xz artifact
-      if: always()
-      uses: actions/download-artifact@v3
-      with:
-        name: passlock-${{ env.VERSION }}.tar.xz
-        path: ./release/
+      - name: Generate Release Notes
+        id: generate_release_notes
+        run: |
+          echo "**What's changed in v${{ env.VERSION }}:**" > release_notes.md
+          echo "" >> release_notes.md
+          echo "- Summary of changes here..." >> release_notes.md
 
-    - name: Download Windows zip artifact
-      if: always()
-      uses: actions/download-artifact@v3
-      with:
-        name: passlock-${{ env.VERSION }}.zip
-        path: ./release/
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: v${{ env.VERSION }}
+          release_name: PassLock ${{ env.VERSION }}
+          body_path: ./release_notes.md
+          draft: false
+          prerelease: false
 
-    - name: Generate Release Notes
-      id: generate_release_notes
-      run: |
-        echo "**What's changed in v${{ env.VERSION }}:**" > release_notes.md
-        echo "" >> release_notes.md
-        echo "- Summary of changes here..." >> release_notes.md
-        echo "- This could include PR titles, commit messages, etc." >> release_notes.md
-
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      with:
-        tag_name: v${{ env.VERSION }}
-        release_name: PassLock ${{ env.VERSION }}
-        body_path: ./release_notes.md
-        draft: false
-        prerelease: false
-
-    - name: Upload Linux tar.gz to release
-      if: always()
-      uses: actions/upload-release-asset@v1
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./release/passlock-${{ env.VERSION }}.tar.gz
-        asset_name: passlock-${{ env.VERSION }}.tar.gz
-        asset_content_type: application/gzip
-
-    - name: Upload Linux tar.xz to release
-      if: always()
-      uses: actions/upload-release-asset@v1
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./release/passlock-${{ env.VERSION }}.tar.xz
-        asset_name: passlock-${{ env.VERSION }}.tar.xz
-        asset_content_type: application/x-xz
-
-    - name: Upload Windows zip to release
-      if: always()
-      uses: actions/upload-release-asset@v1
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./release/passlock-${{ env.VERSION }}.zip
-        asset_name: passlock-${{ env.VERSION }}.zip
-        asset_content_type: application/zip
+      - name: Upload Assets to Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: passlock-${{ env.VERSION }}*.*
+          asset_name: passlock-${{ env.VERSION }}.*
+          asset_content_type: application/octet-stream
