@@ -124,7 +124,7 @@ jobs:
 
       - name: Extract Version
         run: |
-          ls -la
+          ls -la version
           unzip version
           echo "VERSION=$(cat version)" >> $GITHUB_ENV
 
