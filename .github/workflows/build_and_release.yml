@@ -55,6 +55,7 @@ jobs:
           nuitka-version: main
           standalone: true
           output-dir: build/
+          output-file: passlock
           windows-icon-from-ico: img/Logo.ico
           include-data-files: src/.conf=./.conf
           product-name: PassLock
@@ -64,14 +65,14 @@ jobs:
       - name: Package Executable (Linux)
         if: runner.os == 'Linux'
         run: |
-          tar -czvf passlock-${{ env.VERSION }}.tar.gz -C build/ .
-          tar -cJvf passlock-${{ env.VERSION }}.tar.xz -C build/ .
+          tar -czvf passlock-${{ env.VERSION }}.tar.gz -C build/passlock.dist/ .
+          tar -cJvf passlock-${{ env.VERSION }}.tar.xz -C build/passlock.dist/ .
         shell: bash
 
       - name: Package Executable (Windows)
         if: runner.os == 'Windows'
         run: |
-          Compress-Archive -Path build/* -DestinationPath passlock-${{ env.VERSION }}.zip
+          Compress-Archive -Path build/passlock.dist/* -DestinationPath passlock-${{ env.VERSION }}.zip
         shell: powershell
 
       - name: Upload Artifacts (Linux gzip)
