@@ -136,10 +136,6 @@ jobs:
         with:
           tag_name: v${{ env.VERSION }}
           release_name: PassLock ${{ env.VERSION }}
-          body: |
-            "**What's changed in v${{ env.VERSION }}:**"
-            ""
-            "- Summary of changes here..."
           draft: false
           prerelease: false
 
@@ -150,8 +146,6 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: |
-            passlock-${{ env.VERSION }}.tar.gz/passlock-${{ env.VERSION }}.tar.gz
-            passlock-${{ env.VERSION }}.tar.xz/passlock-${{ env.VERSION }}.tar.xz
-            passlock-${{ env.VERSION }}.zip/passlock-${{ env.VERSION }}.zip
+            passlock-${{ env.VERSION }}.*/*
           asset_name: passlock-${{ env.VERSION }}.*
           asset_content_type: application/octet-stream
