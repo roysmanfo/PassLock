@@ -125,8 +125,6 @@ jobs:
       - name: Extract Version
         run: |
           echo "VERSION=$(cat version/version)" >> $GITHUB_ENV
-          sudo apt install tree
-          tree
 
       - name: Create Release
         id: create_release
@@ -140,12 +138,10 @@ jobs:
           prerelease: false
 
       - name: Upload Assets to Release
-        uses: actions/upload-release-asset@v1
+        run: |
+          for file in passlock-${{ env.VERSION }}*.*; do
+            echo "Uploading $file"
+            gh release upload ${{ steps.create_release.outputs.upload_url }} "$file" --clobber
+          done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: |
-            passlock-${{ env.VERSION }}.*/*
-          asset_name: passlock-${{ env.VERSION }}.*
-          asset_content_type: application/octet-stream
