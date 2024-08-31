@@ -122,26 +122,25 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v4
 
+      - name: Install GitHub CLI
+        run: sudo apt-get install -y gh
+  
       - name: Extract Version
         run: |
           echo "VERSION=$(cat version/version)" >> $GITHUB_ENV
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v${{ env.VERSION }}
-          release_name: PassLock ${{ env.VERSION }}
-          draft: false
-          prerelease: false
-
-      - name: Upload Assets to Release
+  
+      - name: Prepare Files for Release
         run: |
-          for file in passlock-${{ env.VERSION }}*.*; do
-            echo "Uploading $file"
-            gh release upload ${{ steps.create_release.outputs.upload_url }} "$file" --clobber
-          done
+          mkdir release_files
+          find . -type f -name "passlock-${{ env.VERSION }}*.tar.gz" -exec cp {} release_files/ \;
+          find . -type f -name "passlock-${{ env.VERSION }}*.tar.xz" -exec cp {} release_files/ \;
+          find . -type f -name "passlock-${{ env.VERSION }}*.zip" -exec cp {} release_files/ \;
+
+      - name: Create Release and Upload Assets
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create v${{ env.VERSION }} \
+            release_files/* \
+            --title "PassLock ${{ env.VERSION }}" \
+            --notes "Release notes here"
