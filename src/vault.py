@@ -24,7 +24,7 @@ class Field:
 
 class Vault():
     def __init__(self) -> None:        
-        self.path = os.path.join(os.path.dirname(__file__), "data", "vault.db")
+        self.path = os.path.join(os.path.expanduser("~"), ".passlock", "vault.sqlite3")
         self.connection: sqlite3.Connection = None
         self._pm: str = None
         self.hint: str = None
