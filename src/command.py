@@ -1,12 +1,14 @@
 import hashlib
-import sys, os, json
-from cryptography.fernet import Fernet
-from argparse import ArgumentParser
 from pathlib import Path
+import sys, os, json
+from cryptography.fernet import Fernet, InvalidToken
+from argparse import ArgumentParser
 
+import login
 from colors import col
 from utils import update_vault
 from user import User
+import utils
 
 class EnVars:
     """
@@ -25,7 +27,24 @@ envars = EnVars()
 
 
 def cmd_list():
-    with open(envars.user.vault_path, 'r') as f:
+    if envars.args.files:
+        files = os.listdir(envars.user.vault_storage)
+
+        if len(files) == 0:
+            print(f'{col.YELLOW}No files found in secure storage{col.RESET}')
+            return
+        
+        total_size = 0
+        for i, file in enumerate(files, start=1):
+            f_size = os.stat(os.path.join(envars.user.vault_storage, file)).st_size
+            total_size += f_size
+            size = utils.format_file_size(f_size)
+            
+            print("{}{}{} {} {}".format(col.CYAN, f'{i}.'.ljust(4), col.RESET, size.ljust(10), file))
+
+        print(f"\n{len(files)} file" + ("s" if len(files) > 1 else "") , "| total size:",  utils.format_file_size(total_size))
+    else:
+        with open(envars.user.vault_path, 'r') as f:
             apps: dict = json.load(f)['Apps']
             
             if len(apps) == 0:
@@ -51,7 +70,7 @@ def cmd_get():
     
     with open(envars.user.vault_path, 'r') as f:
         apps: dict = json.load(f)['Apps']
-        envars.args.key: str = envars.args.key.capitalize()
+        envars.args.key = envars.args.key.capitalize()
 
         keys = [envars.fernet.decrypt(i).decode() for i in apps.keys()]
 
@@ -94,6 +113,7 @@ def cmd_set():
             print(f'{col.RED}App not found{col.RESET}')
             return
 
+        # create a temporary mapping: "key_name" (decrypted) -> key_name (encrypted)
         mapped_keys = {}
         for enc_key in apps.keys():
             dict.update(mapped_keys, {envars.fernet.decrypt(enc_key).decode(): enc_key})
@@ -102,7 +122,16 @@ def cmd_set():
         if appfield not in stored_keys:
             print(f'{col.CYAN}Creating new field {appfield}{col.RESET}')
         
-        dict.update(apps[mapped_keys[appname]], {envars.fernet.encrypt(appfield.encode()).decode(): envars.fernet.encrypt(" ".join(envars.args.new_val).encode('utf-8')).decode('utf-8')})
+        field_name = envars.fernet.encrypt(appfield.encode('utf-8'))
+        field_val = " ".join(envars.args.new_val).encode('utf-8')
+        apps.update
+        dict.update(
+            apps[mapped_keys[appname]],
+            {
+                field_name.decode('utf-8'): envars.fernet.encrypt(field_val).decode('utf-8')
+            }
+        )
+        del mapped_keys
         
         update_vault(envars.user, apps=apps)
         print(f'{col.GREEN}{appname} updated{col.RESET}')
@@ -194,56 +223,57 @@ def cmd_rnm():
 
     with open(envars.user.vault_path, 'r') as f:
         apps: dict = json.load(f)['Apps']
-        keys = [envars.fernet.decrypt(i).decode() for i in apps.keys()]
-        mapped_keys = {}
-        for enc_key in apps.keys():
-            dict.update(mapped_keys, {envars.fernet.decrypt(enc_key).decode(): enc_key})
-        
-        # Check the app name
-        if len(original_key.split('.')) == 1:
-            if original_key not in keys:
-                print(f'{col.RED}App not found{col.RESET}')
-                return
-        elif len(original_key.split('.')) == 2:
-            if original_key.split('.')[0] not in keys:
-                print(f'{col.RED}App not found{col.RESET}')
-                return
-        else:
-            print(f'{col.RED}Syntax error{col.RESET}')
+    keys = [envars.fernet.decrypt(i).decode() for i in apps.keys()]
+    mapped_keys = {}
+    for enc_key in apps.keys():
+        dict.update(mapped_keys, {envars.fernet.decrypt(enc_key).decode(): enc_key})
+    
+    # Check the app name
+    if len(original_key.split('.')) == 1:
+        if original_key not in keys:
+            print(f'{col.RED}App not found{col.RESET}')
             return
-        
-        # Check if we want to rename an app or a field
-        if len(original_key.split('.')) == 1 and new_key in keys:
-            print(f"{col.RED}There is already an app with name {new_key.capitalize()}{col.RESET}")
+    elif len(original_key.split('.')) == 2:
+        if original_key.split('.')[0] not in keys:
+            print(f'{col.RED}App not found{col.RESET}')
             return
-        elif new_key in [envars.fernet.decrypt(i).decode() for i in apps]:
-            print(f"{col.RED}There is already a field with name {new_key.capitalize()}{col.RESET}")
-            return
-        
-        # Create a new dictionary/field with the updated name and delete the old one
-        if len(original_key.split('.')) == 1:
-            sub_dict = apps[mapped_keys[original_key]]
-            apps[envars.fernet.encrypt(new_key.encode()).decode()] = sub_dict
-            del apps[mapped_keys[original_key]]
-        else:
-            appname, fieldname = [i.capitalize() for i in original_key.split('.')]
-            mapped_fields = {}
-            for enc_key in apps[mapped_keys[appname]].keys():
-                dict.update(mapped_fields, {envars.fernet.decrypt(enc_key).decode(): enc_key})
-            old_field = mapped_fields[fieldname] # get the old value of the field
-            field_val = apps[mapped_keys[appname]][old_field]
-            apps[mapped_keys[appname]][envars.fernet.encrypt(new_key.encode()).decode()] = field_val
-            del apps[mapped_keys[appname]][mapped_fields[fieldname]]
+    else:
+        print(f'{col.RED}Syntax error{col.RESET}')
+        return
+    
+    # Check if we want to rename an app or a field
+    if len(original_key.split('.')) == 1 and new_key in keys:
+        print(f"{col.RED}There is already an app with name {new_key.capitalize()}{col.RESET}")
+        return
+    elif new_key in [envars.fernet.decrypt(i).decode() for i in apps]:
+        print(f"{col.RED}There is already a field with name {new_key.capitalize()}{col.RESET}")
+        return
+    
+    # Create a new dictionary/field with the updated name and delete the old one
+    if len(original_key.split('.')) == 1:
+        sub_dict = apps[mapped_keys[original_key]]
+        apps[envars.fernet.encrypt(new_key.encode()).decode()] = sub_dict
+        del apps[mapped_keys[original_key]]
+    else:
+        # well you find this hard to read, but it was harder to write,
+        # AND I HAD TO DO BOTH 
+        appname, fieldname = [i.capitalize() for i in original_key.split('.')]
+        mapped_fields = {}
+        for enc_key in apps[mapped_keys[appname]].keys():
+            dict.update(mapped_fields, {envars.fernet.decrypt(enc_key).decode(): enc_key})
+        old_field = mapped_fields[fieldname] # get the old value of the field
+        field_val = apps[mapped_keys[appname]][old_field]
+        apps[mapped_keys[appname]][envars.fernet.encrypt(new_key.encode()).decode()] = field_val
+        del apps[mapped_keys[appname]][mapped_fields[fieldname]]
 
-        update_vault(envars.user, apps=apps)
-        print(f"{col.GREEN}Renamed '{original_key}' to '{new_key}'{col.RESET}")
+    update_vault(envars.user, apps=apps)
+    print(f"{col.GREEN}Renamed '{original_key}' to '{new_key}'{col.RESET}")
 
 def cmd_chpass():
-    import login
-    new_key, password = login.generate_key(envars.user, from_command_line=True)
-
+    new_key, password = login.generate_key(envars.user, from_user=True)
     pm_hash = hashlib.sha512(password.encode()).hexdigest()
-    
+    old_fernet = envars.fernet
+
     with open(envars.user.vault_path, 'r') as f:
         apps: dict = json.load(f)['Apps']
         appfields = [(envars.fernet.decrypt(i).decode(), [[envars.fernet.decrypt(l).decode() for l in k] for k in apps[i].items()]) for i in apps]
@@ -259,6 +289,18 @@ def cmd_chpass():
             dict.update(apps, {envars.fernet.encrypt(app[0].encode()).decode(): fields})
 
         update_vault(envars.user, pm_hash, apps=apps)
+        print(f"{col.GREEN}vault updated{col.GREEN}")
+        print(f"updating files in the secure vault (this process may take some time based on the size of the vault)")
+        
+        # dont forget the files stored in the secure vault
+        for file in os.listdir(envars.user.vault_storage):
+            with open(file, "rb") as f:
+                data = old_fernet.decrypt(f.read())
+            with open(file, "wb") as f:
+                f.write(envars.fernet.encrypt(data))
+
+        print(f"{col.GREEN}secure storage updated{col.GREEN}")
+
 
 def cmd_sethint():
     hint = " ".join(envars.args.hint)
@@ -274,75 +316,154 @@ def cmd_sethint():
         print(f"{col.GREEN}Hint modified{col.RESET}")
 
 def cmd_fenc():
-    files = envars.args.files
-        
-    # Check for errors in the input
-    if len(files) == 0:
-        print(f'{col.RED}No file path provided{col.RESET}')
+    try:
+        files = utils.path_escape(" ".join(envars.args.files))
+    except Exception as e:
+        print(f'{col.RED}Err: {e}{col.RESET}')
         return
-    
-    files = [Path(file).resolve() for file in files]
 
+    # Check for errors in the input
+    # don't do anything if there are errors
     for file in files:
-        if not os.path.isfile(file):
-            print(f'{col.RED}`{file}` is not a file{col.RESET}')
+        if not file.exists():
+            print(f'{col.RED}File `{file}` does not exist{col.RESET}')
             return
         
-        if not os.path.exists(file):
-            print(f'{col.RED}File `{file}` does not exist{col.RESET}')
+        if not file.is_file():
+            print(f'{col.RED}`{file}` is not a file{col.RESET}')
             return
         
     # Try to overwrite all given files
     for file in files:
+        _original = None 
         try:
-            with open(file, 'r') as f:
-                if f.readable():
-                    content = f.readlines()
-                    with open(file, 'w') as f:
-                        content = [envars.fernet.encrypt(i.encode()).decode() for i in content]
-                        content = ["".join(hex(ord(c))[2:] for c in i) + '\n' for i in content]
-
-                        f.writelines(content)
-                else:
+            with open(file, 'rb') as f:
+                if not f.readable():
                     print(f'{col.RED}`{file}` is not readable{col.RESET}')
+                    continue
+                content = f.read()
 
+            if envars.args.save:
+                # save an encrypted copy of the original file in the vault
+                _original = file
+                file = os.path.join(envars.user.vault_storage, file.name)
+
+            with open(file, 'wb') as f:
+                content = envars.fernet.encrypt(content)
+                f.write(content)
+
+            if envars.args.save:
+                print(f"[{col.GREEN}+{col.RESET}] added `{_original}` to secure storage{col.RESET}")
+                if envars.args.remove:
+
+                    if _original.samefile(file):
+                        print(f'{col.RED}unable to remove the original file (same file error){col.RESET}')                    
+                    else:
+                        try:
+                            os.remove(_original)
+                        except FileNotFoundError:
+                            print(f'{col.RED}unable to remove `{file}` (file not found) {col.RESET}')
+                        except PermissionError:
+                            print(f'{col.RED}unable to remove `{file}` (permission error) {col.RESET}')                    
+                        else:
+                            print(f'{col.RED}removed{col.RESET} original file')                    
         except PermissionError:
             print(f'{col.RED}Do not have permissions to overwrite file `{file}`{col.RESET}')
 
 def cmd_fdec():
-    files = envars.args.files
-        
-    # Check for errors in the input
-    if len(files) == 0:
-        print(f'{col.RED}No file path provided{col.RESET}')
-        return
-    
-    files = [Path(file).resolve() for file in files]
+    out_dir: Path = None
 
-    for file in files:
-        if not os.path.isfile(file):
-            print(f'{col.RED}`{file}` is not a file{col.RESET}')
+    if envars.args.output:
+        out_dir = utils.path_escape(envars.args.output)[0].resolve()
+
+        if out_dir.exists() and out_dir.is_reserved():
+            print(f'{col.RED}unable to access `{file}` (permission error){col.RESET}')
             return
         
-        if not os.path.exists(file):
+        if not out_dir.is_dir():
+            print(f'{col.RED}`{file}` is not a directory{col.RESET}')
+            return
+
+        out_dir.mkdir(parents=True, exist_ok=True)
+
+    try:
+        files = utils.path_escape(" ".join(envars.args.files))
+    except Exception as e:
+        print(f'{col.RED}Err: {e}{col.RESET}')
+        return
+
+    # Check for errors in the input
+    # don't do anything if there are errors
+    for file in files:
+
+        if envars.args.secure_storage:
+            # this file is in the secure storage
+            file = Path(os.path.join(envars.user.vault_storage, file))
+        if not file.exists():
             print(f'{col.RED}File `{file}` does not exist{col.RESET}')
             return
         
-    # Try to overwrite all given files
+        if not file.is_file():
+            print(f'{col.RED}`{file}` is not a file{col.RESET}')
+            return
+        
+    # Try to decrypt all given files
     for file in files:
+        if envars.args.secure_storage:
+            # this file is in the secure storage
+            file = Path(os.path.join(envars.user.vault_storage, file))
         try:
-            with open(file, 'r') as f:
+            with open(file, 'rb') as f:
                 if f.readable():
-                    content = f.readlines()
-                    with open(file, 'w') as f:
-                        content = [bytes.fromhex(i).decode() for i in content]
-                        content = [envars.fernet.decrypt(i).decode() for i in content]
-                        f.writelines(content)
+                    content = f.read()
                 else:
                     print(f'{col.RED}`{file}` is not readable{col.RESET}')
+                    return
+            
+            out_file = file
+            if out_dir:
+                out_file = out_dir.joinpath(os.path.basename(file))
+
+            with open(out_file, 'wb') as f:
+                content = envars.fernet.decrypt(content)
+                f.write(content)
+        
+            if envars.args.remove and str(out_file) != str(file):
+                try:
+                    os.remove(file)
+                except FileNotFoundError:
+                    print(f'{col.RED}unable to remove `{file}` (file not found) {col.RESET}')
+                except PermissionError:
+                    print(f'{col.RED}unable to remove `{file}` (permission error) {col.RESET}')                    
+                else:
+                    print(f'{col.RED}removed{col.RESET} original file')  
 
         except PermissionError:
             print(f'{col.RED}Do not have permissions to overwrite file `{file}`{col.RESET}')
+        
+        except InvalidToken:
+            print(f'{col.RED}unable to decrypt the file `{file}` (may have been altered){col.RESET}')
+
+def cmd_version():
+    cur_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), ".conf")
+    try:
+        with open(cur_dir, "rt") as conf:
+            while not (line := conf.readline()).strip().startswith("version="):
+                pass
+
+            if not line or not line.startswith("version="):
+                print(f"{col.RED}config file altered (unable to determine the version){col.RESET}")
+                return
+
+            version = line.split("=")[1] # the version should contain no whitespaces
+            print(version)
+    except FileNotFoundError:
+        print(f"{col.RED}unable to find configuration file{col.RESET}")
+
+    except OSError as e:
+        # - unable to read 
+        # - permission denied
+        print(f"{col.RED}{e}{col.RESET}")
 
 def run_command(args: ArgumentParser):
     """
@@ -352,44 +473,21 @@ def run_command(args: ArgumentParser):
 
     envars.args = args
 
-    if args.command == 'exit':
-        sys.exit(0)
-
-    elif args.command in ['list', 'ls']:
-        cmd_list()
-
-    elif args.command == 'get':
-        cmd_get()
-    
-    elif args.command == 'set':
-        cmd_set()
-
-    elif args.command in ['del', 'rm']:
-        cmd_del()
-
-    elif args.command == 'add':
-        cmd_add()
-
-    elif args.command in ['rename', 'rnm']:
-        cmd_rnm()
-
-    elif args.command == 'chpass':
-        cmd_chpass()
-
-    elif args.command == 'sethint':
-        cmd_sethint()
-    
-    elif args.command == 'fenc':
-        cmd_fenc()
-
-    elif args.command == 'fdec':
-        cmd_fdec()
-
-    elif args.command == 'clear':
-        os.system("clear || cls")
-
-    elif args.command in ['-h', '--help','help']:
-        print('''usage: { exit, clear, help, chpass, list, ls, set, get, del, rm, add, rename, rnm } ...
+    match args.command:
+        case 'exit':            sys.exit(0)
+        case 'list' | 'ls':     cmd_list()
+        case 'get':             cmd_get()
+        case 'set':             cmd_set()
+        case 'del' | 'rm':      cmd_del()
+        case 'add':             cmd_add()
+        case 'rename' | 'rnm':  cmd_rnm()
+        case 'chpass':          cmd_chpass()
+        case 'sethint':         cmd_sethint()
+        case 'fenc':            cmd_fenc()
+        case 'fdec':            cmd_fdec()
+        case 'version':         cmd_version()
+        case 'clear':           os.system("cls" if os.name == 'nt' else "clear")
+        case '-h'|'--help'|'help': print('''usage: command [options] ...
 
 Store your passwords localy in a secure way
 
@@ -410,6 +508,7 @@ commands:
     add                 Add the new app/apps to the vault (i.e add github bitcoin work)
     rename              Rename a key or a field (i.e `rename work.code passkey` or `rename work job`)
     rnm                 Rename a key or a field (i.e `rnm work.code passkey` or `rnm work job`)
+    version             Get the current version
 ''')
         
         

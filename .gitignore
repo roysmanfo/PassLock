@@ -1,8 +1,14 @@
 # Venv
+.venv/
 Include
 Scripts
-vault.json
 pyvenv.cfg
+
+# vaults
+vault.json
+vault.db
+data/
+
 # ignore_me files (if you need to test something)
 ignore_me_*.*
 
