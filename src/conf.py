@@ -13,7 +13,7 @@ BIN_PATH = os.path.dirname(os.path.realpath(__file__))
 
 # the location of the vault
 VAULT_PATH = os.path.join(os.path.expanduser("~"),
-                          ".passlock", "vault.sqlite3")
+                          ".passlock", "vault.json")
 
 # the location of the configuration file
 CONF_PATH = os.path.join(BIN_PATH, ".conf")
