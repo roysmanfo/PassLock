@@ -5,14 +5,15 @@ import hashlib
 from typing import Optional, Union
 
 from src.colors import col
+from src.conf import VAULT_PATH, SECURE_STORAGE_PATH
 
 class User(object):
-    def __init__(self, vault_path: str):
-        self.vault_path = vault_path
+    def __init__(self):
+        self.vault_path = VAULT_PATH
         self.key = ""
 
         # where to store all file 
-        self.vault_storage = os.path.join(os.path.dirname(vault_path), "secure_storage")
+        self.vault_storage = SECURE_STORAGE_PATH
         os.makedirs(self.vault_storage, exist_ok=True)
 
         # the hash of the password
