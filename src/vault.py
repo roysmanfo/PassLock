@@ -3,6 +3,7 @@ import sqlite3
 from datetime import datetime
 from typing import Optional
 
+import conf
 
 class Application:
     def __init__(self, id: int, name: str, created_at: datetime) -> None:
@@ -24,7 +25,7 @@ class Field:
 
 class Vault():
     def __init__(self) -> None:        
-        self.path = os.path.join(os.path.expanduser("~"), ".passlock", "vault.sqlite3")
+        self.path = conf.VAULT_PATH
         self.connection: sqlite3.Connection = None
         self._pm: str = None
         self.hint: str = None
