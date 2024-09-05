@@ -4,7 +4,7 @@ import json
 import hashlib
 from typing import Optional, Union
 
-from colors import col
+from src.colors import col
 
 class User(object):
     def __init__(self, vault_path: str):
