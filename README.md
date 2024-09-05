@@ -1,5 +1,55 @@
 ![PassLock logo](img/logos/png/logo-line-color.png)
 > NOTE: _on the master branch you will find the cli version, the GUI version is still in development in the GUI branch_
+## Installation
+
+There are multiple ways to install passlock, If one option does not work for you, try the other ones.
+
+### Method 1 - Using the release binaries
+In the [release](https://github.com/roysmanfo/PassLock/releases/latest) section there are binaries for Windows (.zip) and Linux (.tar.gz and .tar.xz)
+
+**Windows installation**  
+- Download and extract `passlock-{version}.zip`
+- Place the contents of the archive where you want on disk (can be inside `C:\Programs\`)
+
+To be able to search and passlock from the windows search bar
+
+- create a new shortcut to the executable `passlock.exe`
+- place the shurtcut in `C:\Users\{your_user_name}\AppData\Roaming\Microsoft\Windows\Start Menu\Programs`
+
+Now passlock is installed, you can search it in the search bar and run it.
+
+> Windows may detect block the execution and flag it as dangerous,
+> as the program is not signed and does not contain some metadata
+> that Windows will look for. Just allow to execute it.
+
+**Linux installation**
+- Download and extract either `passlock-{version}.tar.gz` or `passlock-{version}.tar.xz` (note that `.tar.xz` is lighter and faster to download)
+- Place the contents of the archive in the `/usr/share/passlock` folder
+- create a symlink to the `passlock` executable
+```
+ln /usr/share/passlock/passlock passlock 
+```
+- place the symlink in the `/usr/bin` folder
+
+Now passlock is installed, you can type `passlock` in the terminal run it.
+
+> You may have to add the `x` flag to the executable to run it.  
+> You can do so with `chmod +x /usr/share/passlock/passlock`
+
+
+### Method 2 - Installing from source
+- You need to install [python](https://python.org/downloads/) (_and add it to PATH_)
+- You need to install [git](https://git-scm.com/downloads)
+- Clone this repository on your machine
+```
+git clone https://github.com/roysmanfo/PassLock
+```
+- Install the application using `pip`
+```
+pip install PassLock
+```
+
+
 ## How does it work
 
 Password after being encrypted, get stored in a JSON file with the following format:
