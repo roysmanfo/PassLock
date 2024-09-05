@@ -3,9 +3,9 @@ import json
 import getpass
 import getpass
 
-from user import User
-from colors import col
-import utils
+from src import utils
+from src.user import User
+from src.colors import col
 
 def generate_key(USER: User, from_user: bool = False) -> bytes | tuple[bytes, str]:
     """
