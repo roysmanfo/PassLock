@@ -1,11 +1,10 @@
 import sys, os
 from argparse import ArgumentError
 
-from user import User
-import login
-import command
-from colors import col
-from parser import get_parser
+from src import login, command
+from src.user import User
+from src.colors import col
+from src.parser import get_parser
 
 VAULT_PATH = os.path.join(os.path.expanduser("~"), ".passlock", "vault.json")
 
