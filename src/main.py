@@ -1,18 +1,16 @@
-import sys, os
+import sys
 from argparse import ArgumentError
 
-from src import login, command
+from src import login, command 
 from src.user import User
 from src.colors import col
 from src.parser import get_parser
-
-VAULT_PATH = os.path.join(os.path.expanduser("~"), ".passlock", "vault.json")
 
 def main():
     """
     ### Point of start of the program
     """
-    USER = User(VAULT_PATH)
+    USER = User()
     USER.key = login.generate_key(USER) if USER.password_manager == b"" else login.login(USER)
     print(f"{col.GREEN}Logged sucessfully{col.RESET}")
     parser = get_parser()

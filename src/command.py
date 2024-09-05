@@ -4,8 +4,7 @@ import sys, os, json
 from cryptography.fernet import Fernet, InvalidToken
 from argparse import ArgumentParser
 
-from src import utils
-from src import login
+from src import utils, login, conf
 from src.colors import col
 from src.utils import update_vault
 from src.user import User
@@ -445,25 +444,12 @@ def cmd_fdec():
             print(f'{col.RED}unable to decrypt the file `{file}` (may have been altered){col.RESET}')
 
 def cmd_version():
-    cur_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), ".conf")
-    try:
-        with open(cur_dir, "rt") as conf:
-            while not (line := conf.readline()).strip().startswith("version="):
-                pass
+    if not conf.VERSION:
+        print(f"{col.RED}config file altered (unable to determine the version){col.RESET}")
+        return
 
-            if not line or not line.startswith("version="):
-                print(f"{col.RED}config file altered (unable to determine the version){col.RESET}")
-                return
+    print(conf.VERSION)
 
-            version = line.split("=")[1] # the version should contain no whitespaces
-            print(version)
-    except FileNotFoundError:
-        print(f"{col.RED}unable to find configuration file{col.RESET}")
-
-    except OSError as e:
-        # - unable to read 
-        # - permission denied
-        print(f"{col.RED}{e}{col.RESET}")
 
 def run_command(args: ArgumentParser):
     """
