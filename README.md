@@ -46,7 +46,8 @@ git clone https://github.com/roysmanfo/PassLock
 ```
 - Install the application using `pip`
 ```
-pip install PassLock
+pip install -r requirements.txt
+pip install ./PassLock
 ```
 
 
