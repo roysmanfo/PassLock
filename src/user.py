@@ -4,8 +4,8 @@ import json
 import hashlib
 from typing import Optional, Union
 
-from src.colors import col
-from src.conf import VAULT_PATH, SECURE_STORAGE_PATH
+from colors import col
+from conf import VAULT_PATH, SECURE_STORAGE_PATH
 
 class User(object):
     def __init__(self):

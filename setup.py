@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 from pathlib import Path
 
-from src.conf import VERSION
+from conf import VERSION
 
 DIR = Path(__file__).parent
 

@@ -1,10 +1,10 @@
 import sys
 from argparse import ArgumentError
 
-from src import login, command 
-from src.user import User
-from src.colors import col
-from src.parser import get_parser
+import login, command 
+from user import User
+from colors import col
+from parser import get_parser
 
 def main():
     """

@@ -4,10 +4,10 @@ import sys, os, json
 from cryptography.fernet import Fernet, InvalidToken
 from argparse import ArgumentParser
 
-from src import utils, login, conf
-from src.colors import col
-from src.utils import update_vault
-from src.user import User
+import utils, login, conf
+from colors import col
+from utils import update_vault
+from user import User
 
 class EnVars:
     """
