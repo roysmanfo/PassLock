@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 from pathlib import Path
 
-from src.conf import VERSION
+from passlock.conf import VERSION
 
 DIR = Path(__file__).parent
 
@@ -15,8 +15,13 @@ setup(
     author='roysmanfo',
     url='https://github.com/roysmanfo/PassLock',
     install_requires=REQUIREMENTS,
-    packages=find_packages(include=['src']),
+    packages=find_packages(include=['passlock']),
+    package_dir={"": "."},
+    package_data={
+        "passlock": [".conf"],
+    },
+    include_package_data=True,
     entry_points={
-        'console_scripts': ['passlock=src.main:main']
+        'console_scripts': ['passlock=passlock.main:main']
     }
 )
