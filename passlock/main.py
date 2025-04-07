@@ -1,10 +1,10 @@
 import sys
 from argparse import ArgumentError
 
-import login, command 
-from user import User
-from colors import col
-from parser import get_parser
+from passlock import login, command 
+from passlock.user import User
+from passlock.colors import col
+from passlock.parser import get_parser
 
 def main():
     """

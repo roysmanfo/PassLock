@@ -8,7 +8,7 @@ from typing import Optional
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 
-from user import User
+from passlock.user import User
 
 def update_vault(user: User, pm_hash: Optional[str] = None, hint: Optional[str] = None, apps: Optional[dict] = None):
     with open(user.vault_path, 'r') as f:
